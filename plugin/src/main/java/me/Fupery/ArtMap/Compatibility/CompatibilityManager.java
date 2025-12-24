@@ -11,28 +11,15 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import me.Fupery.ArtMap.ArtMap;
-import me.Fupery.ArtMap.Compatibility.impl.ASkyBlockCompat;
-import me.Fupery.ArtMap.Compatibility.impl.BentoBoxCompat;
-import me.Fupery.ArtMap.Compatibility.impl.CMICompat;
-import me.Fupery.ArtMap.Compatibility.impl.GriefDefenderCompat;
 import me.Fupery.ArtMap.Compatibility.impl.GriefPreventionCompat;
 import me.Fupery.ArtMap.Compatibility.impl.HeadRetrieval_1_13;
 import me.Fupery.ArtMap.Compatibility.impl.HeadRetrieval_1_20_2;
-import me.Fupery.ArtMap.Compatibility.impl.MarriageMasterCompat;
 import me.Fupery.ArtMap.Compatibility.impl.Palette_1_13;
 import me.Fupery.ArtMap.Compatibility.impl.Palette_1_14;
 import me.Fupery.ArtMap.Compatibility.impl.Palette_1_16;
 import me.Fupery.ArtMap.Compatibility.impl.Palette_1_18;
 import me.Fupery.ArtMap.Compatibility.impl.EssentialsCompat;
-import me.Fupery.ArtMap.Compatibility.impl.PlotSquared4Compat;
-import me.Fupery.ArtMap.Compatibility.impl.PlotSquared5Compat;
-import me.Fupery.ArtMap.Compatibility.impl.PlotSquared6Compat;
 import me.Fupery.ArtMap.Compatibility.impl.PlotSquared7Compat;
-import me.Fupery.ArtMap.Compatibility.impl.RedProtectCompat;
-import me.Fupery.ArtMap.Compatibility.impl.ResidenceCompat;
-import me.Fupery.ArtMap.Compatibility.impl.SabreFactionsCompat;
-import me.Fupery.ArtMap.Compatibility.impl.TownyCompat;
-import me.Fupery.ArtMap.Compatibility.impl.USkyBlockCompat;
 import me.Fupery.ArtMap.Compatibility.impl.WorldGuardCompat;
 import me.Fupery.ArtMap.api.IArtMap;
 import me.Fupery.ArtMap.api.Colour.Palette;
@@ -56,31 +43,11 @@ public class CompatibilityManager implements RegionHandler {
         regionHandlers = new ArrayList<>();
         eventListeners = new ArrayList<>();
         loadRegionHandler("WorldGuard",WorldGuardCompat.class, "WorldGuard 7");
-        //Disable as it is 1.12 and lower
-        //loadRegionHandler("Factions",FactionsCompat.class, "Factions");
-        loadRegionHandler("Factions",SabreFactionsCompat.class, "Sabre Factions");
-        loadRegionHandler("GriefDefender",GriefDefenderCompat.class,"Grief Defender");
         loadRegionHandler("GriefPrevention",GriefPreventionCompat.class,"Grief Prevention");
-        loadRegionHandler("RedProtect",RedProtectCompat.class, "Red Protect");
-        //likely can be removed as 1.12 and lower
-        loadRegionHandler("ASkyBlock",ASkyBlockCompat.class, "ASkyBlock");
-        loadRegionHandler("uSkyBlock",USkyBlockCompat.class, "uSkyBlock");
-        loadRegionHandler("BentoBox",BentoBoxCompat.class, "BentoBox/BSkyBlock");
-        loadRegionHandler("PlotSquared",PlotSquared4Compat.class, "Plot Squared 4", new Version(4), new Version(5));
-        loadRegionHandler("PlotSquared",PlotSquared5Compat.class, "Plot Squared 5", new Version(5), new Version(6));
-        loadRegionHandler("PlotSquared",PlotSquared6Compat.class, "Plot Squared 6", new Version(6), new Version(7));
         loadRegionHandler("PlotSquared",PlotSquared7Compat.class, "Plot Squared 7", new Version(7), new Version(9999));
-        loadRegionHandler("Residence",ResidenceCompat.class, "Residence");
-        loadRegionHandler("Towny",TownyCompat.class, "Towny");
-        reflectionHandler = loadReflectionHandler();
-        //Event handlers
-        loadEventListener("MarriageMaster", MarriageMasterCompat.class, "Marriage Master");
-        loadEventListener("CMI", CMICompat.class, "CMI");
+        reflectionHandler = new VanillaReflectionHandler();
         loadEventListener("Essentials", EssentialsCompat.class, "Essentials");
 
-        if (!(reflectionHandler instanceof VanillaReflectionHandler))
-            plugin.getLogger().info(String.format("%s reflection handler enabled.",
-                    reflectionHandler.getClass().getSimpleName().replace("Compat", "")));
         for (RegionHandler regionHandler : regionHandlers) {
             plugin.getLogger().info(String.format("%s hooks enabled.",
                     regionHandler.getClass().getSimpleName().replace("Compat", "")));
@@ -147,13 +114,6 @@ public class CompatibilityManager implements RegionHandler {
         return headsRetriever;
     }
 
-    private ReflectionHandler loadReflectionHandler() {
-        ReflectionHandler denizenHandler = new DenizenCompat();
-        if (denizenHandler.isLoaded()) return denizenHandler;
-        ReflectionHandler iDisguiseHandler = new iDisguiseCompat();
-        if (iDisguiseHandler.isLoaded()) return iDisguiseHandler;
-        return new VanillaReflectionHandler();
-    }
 
     private void loadRegionHandler(String pluginName, Class<? extends RegionHandler> handlerClass, String description) {
         try {

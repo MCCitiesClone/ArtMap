@@ -34,6 +34,7 @@ public class Easel {
     private final WeakEntity<ArmorStand> seat = new WeakEntity<>(EaselPart.SEAT);
     private final WeakEntity<ArmorStand> marker = new WeakEntity<>(EaselPart.MARKER);
     private final AtomicBoolean spawned;
+    private final AtomicBoolean mountingInProgress = new AtomicBoolean(false);
     private UUID user;
 
     private Easel(Location location, boolean hasBeenSpawned) {
@@ -135,14 +136,22 @@ public class Easel {
      * Mounts a canvas on the easel, with an id defined by the canvas provided.
      *
      * @param canvas The canvas that will be placed on the easel.
+     * @return true if the canvas was mounted, false if another mounting operation is in progress.
      */
-    public void mountCanvas(Canvas canvas) {
+    public boolean mountCanvas(Canvas canvas) {
+        if (!mountingInProgress.compareAndSet(false, true)) {
+            return false;
+        }
         try {
             removeItem();
             setItem(canvas.getEaselItem());
             EaselEffect.MOUNT_CANVAS.playEffect(getCentreLocation());
+            return true;
         } catch (Exception e) {
             ArtMap.instance().getLogger().log(Level.SEVERE, "Error placing canvas!", e);
+            return false;
+        } finally {
+            mountingInProgress.set(false);
         }
     }
 

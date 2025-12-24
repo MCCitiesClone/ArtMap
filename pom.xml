@@ -24,23 +24,9 @@
 		<module>compatibility/Spigot_1_18</module>
 		<module>compatibility/Spigot_1_20_2</module>
 		<!-- plugin compatibility -->
-		<module>compatibility/ASkyBlock</module>
-		<module>compatibility/BentoBox</module>
-		<module>compatibility/CMI</module>
 		<module>compatibility/Essentials</module>
-		<module>compatibility/Factions</module>
 		<module>compatibility/GriefPrevention</module>
-		<module>compatibility/GriefDefender</module>
-		<module>compatibility/MarriageMaster</module>
-		<module>compatibility/PlotSquared4</module>
-		<module>compatibility/PlotSquared5</module>
-		<module>compatibility/PlotSquared6</module>
 		<module>compatibility/PlotSquared7</module>
-		<module>compatibility/RedProtect</module>
-		<module>compatibility/Residence</module>
-		<module>compatibility/SabreFactions</module>
-		<module>compatibility/Towny</module>
-		<module>compatibility/USkyBlock</module>
 		<module>compatibility/WorldGuard</module>
 		<module>DataTables</module>
 		<module>plugin</module>
@@ -62,11 +48,6 @@
 		<repository>
 			<id>jitpack.io</id>
 			<url>https://jitpack.io</url>
-		</repository>
-		<!-- iDisguise -->
-		<repository>
-			<id>robingrether-repo</id>
-			<url>https://www.robingrether.de/mc/repo</url>
 		</repository>
 		<repository>
 			<id>citizen</id>

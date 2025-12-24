@@ -3,7 +3,7 @@ main: me.Fupery.ArtMap.ArtMap
 version: ${project.version}
 description: ${project.description}
 depend: [ProtocolLib]
-softdepend: [WorldGuard, Factions, Denizen, GriefPrevention, RedProtect, Landlord, iDisguise, ASkyBlock, Residence, MarriageMaster, PlotSquared, Essentials, BentoBox, CMI, GriefDefender]
+softdepend: [WorldGuard, GriefPrevention, PlotSquared, Essentials]
 author: [Wispoffates,(Original) Fupery]
 api-version: 1.13
 
@@ -46,5 +46,5 @@ permissions:
     default: op
 
   artmap.prevent.afk:
-    description: Player will not be kicked for being AFK at easel. Supports Eseentials and CMI.
+    description: Player will not be kicked for being AFK at easel. Supports Essentials.
     default: false

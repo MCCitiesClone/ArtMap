@@ -92,7 +92,9 @@ public final class EaselEvent {
 					return;
 				}
 				map.update(player);
-				mountCanvas(itemInHand, new Canvas(map,player.getName()));
+				if (easel.getItem().getType() == Material.AIR) {
+					mountCanvas(itemInHand, new Canvas(map,player.getName()));
+				}
 			} else if (ArtItem.isArtwork(itemInHand)) {
 				// Edit an artwork on the easel
 				ArtMap.instance().getScheduler().ASYNC.run(() -> {
@@ -116,15 +118,19 @@ public final class EaselEvent {
 								return;
 							}
 							try {
-								Canvas canvas = new Canvas.CanvasCopy(art.get().getMap().cloneMap(), art.get());
-								mountCanvas(itemInHand, canvas);
+								if (easel.getItem().getType() == Material.AIR) {
+									Canvas canvas = new Canvas.CanvasCopy(art.get().getMap().cloneMap(), art.get());
+									mountCanvas(itemInHand, canvas);
+								}
 							} catch (Exception e) {
 								player.sendMessage("Error placing art on the Easel!");
 								ArtMap.instance().getLogger().log(Level.SEVERE, "Error placing art on easel for edit!",e );
 							}
 						} else if ( unsaved ) {
-							Canvas canvas = new Canvas(id, player.getName());
-							mountCanvas(itemInHand, canvas);
+							if (easel.getItem().getType() == Material.AIR) {
+								Canvas canvas = new Canvas(id, player.getName());
+								mountCanvas(itemInHand, canvas);
+							}
 						} else {
 							Lang.ActionBar.NEED_CANVAS.send(player);
 							easel.playEffect(EaselEffect.USE_DENIED);
@@ -149,7 +155,9 @@ public final class EaselEvent {
 	}
 
 	private void mountCanvas(ItemStack itemInHand, Canvas canvas) {
-		easel.mountCanvas(canvas);
+		if (!easel.mountCanvas(canvas)) {
+			return;
+		}
 		ItemStack removed = itemInHand.clone();
 		removed.setAmount(1);
 		player.getInventory().removeItem(removed);
