@@ -151,7 +151,9 @@ public class Easel {
             ArtMap.instance().getLogger().log(Level.SEVERE, "Error placing canvas!", e);
             return false;
         } finally {
-            mountingInProgress.set(false);
+            if (mountingInProgress.get()) {
+                mountingInProgress.set(false);
+            }
         }
     }
 

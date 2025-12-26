@@ -77,24 +77,48 @@ public final class EaselEvent {
 				ArtMaterial material = ArtMaterial.getCraftItemType(itemInHand);
 
 				if (material == ArtMaterial.CANVAS) {
-					// Mount a canvas on the easel
+					if (easel.getItem().getType() != Material.AIR) {
+						return;
+					}
+					ItemStack removed = itemInHand.clone();
+					removed.setAmount(1);
+					java.util.HashMap<Integer, ItemStack> leftover = player.getInventory().removeItem(removed);
+					if (!leftover.isEmpty()) {
+						return;
+					}
 					Map map = null;
 					try {
 						map = ArtMap.instance().getArtDatabase().createMap();
 					} catch (NoSuchFieldException | IllegalAccessException e) {
+						java.util.HashMap<Integer, ItemStack> addLeftover = player.getInventory().addItem(removed);
+						if (!addLeftover.isEmpty()) {
+							easel.getLocation().getWorld().dropItemNaturally(easel.getLocation(), addLeftover.get(0));
+						}
 						player.sendMessage(
 							ChatColor.RED + " Severe Error.  Pleae contact a server Admin! " + ChatColor.RESET);
 						ArtMap.instance().getLogger().log(Level.SEVERE, "Error creating map!", e);
+						return;
 					}
-				if (map == null) {
-					player.sendMessage(
-							ChatColor.RED + " Severe Error.  Pleae contact a server Admin! " + ChatColor.RESET);
-					return;
-				}
-				map.update(player);
-				if (easel.getItem().getType() == Material.AIR) {
-					mountCanvas(itemInHand, new Canvas(map,player.getName()));
-				}
+					if (map == null) {
+						java.util.HashMap<Integer, ItemStack> addLeftover = player.getInventory().addItem(removed);
+						if (!addLeftover.isEmpty()) {
+							easel.getLocation().getWorld().dropItemNaturally(easel.getLocation(), addLeftover.get(0));
+						}
+						player.sendMessage(
+								ChatColor.RED + " Severe Error.  Pleae contact a server Admin! " + ChatColor.RESET);
+						return;
+					}
+					try {
+						map.update(player);
+						mountCanvas(removed, new Canvas(map,player.getName()));
+					} catch (Exception e) {
+						java.util.HashMap<Integer, ItemStack> addLeftover = player.getInventory().addItem(removed);
+						if (!addLeftover.isEmpty()) {
+							easel.getLocation().getWorld().dropItemNaturally(easel.getLocation(), addLeftover.get(0));
+						}
+						player.sendMessage("Error placing canvas on the Easel!");
+						ArtMap.instance().getLogger().log(Level.SEVERE, "Error placing canvas on easel!",e );
+					}
 			} else if (ArtItem.isArtwork(itemInHand)) {
 				// Edit an artwork on the easel
 				ArtMap.instance().getScheduler().ASYNC.run(() -> {
@@ -110,28 +134,68 @@ public final class EaselEvent {
 						ArtMap.instance().getLogger().log(Level.SEVERE, "Error placing art on easel for edit!",e );
 						return;
 					}
+					final int finalId = id;
 					ArtMap.instance().getScheduler().SYNC.run(() -> {
+						if (easel.getItem().getType() != Material.AIR) {
+							return;
+						}
+						ItemStack currentItem = player.getInventory().getItemInMainHand();
+						if (!ArtItem.isArtwork(currentItem)) {
+							return;
+						}
+						Optional<Integer> currentId;
+						try {
+							currentId = ItemUtils.getMapID(currentItem);
+						} catch (ArtMapException e) {
+							return;
+						}
+						if (!currentId.isPresent() || currentId.get() != finalId) {
+							return;
+						}
+						ItemStack removed = currentItem.clone();
+						removed.setAmount(1);
+						java.util.HashMap<Integer, ItemStack> leftover = player.getInventory().removeItem(removed);
+						if (!leftover.isEmpty()) {
+							return;
+						}
 						if (art.isPresent()) {
 							if (!player.getUniqueId().equals(art.get().getArtistPlayer().getUniqueId()) && !player.hasPermission("artmap.admin")) {
+								java.util.HashMap<Integer, ItemStack> addLeftover = player.getInventory().addItem(removed);
+								if (!addLeftover.isEmpty()) {
+									easel.getLocation().getWorld().dropItemNaturally(easel.getLocation(), addLeftover.get(0));
+								}
 								Lang.ActionBar.NO_EDIT_PERM.send(player);
 								easel.playEffect(EaselEffect.USE_DENIED);
 								return;
 							}
 							try {
-								if (easel.getItem().getType() == Material.AIR) {
-									Canvas canvas = new Canvas.CanvasCopy(art.get().getMap().cloneMap(), art.get());
-									mountCanvas(itemInHand, canvas);
-								}
+								Canvas canvas = new Canvas.CanvasCopy(art.get().getMap().cloneMap(), art.get());
+								mountCanvas(removed, canvas);
 							} catch (Exception e) {
+								java.util.HashMap<Integer, ItemStack> addLeftover = player.getInventory().addItem(removed);
+								if (!addLeftover.isEmpty()) {
+									easel.getLocation().getWorld().dropItemNaturally(easel.getLocation(), addLeftover.get(0));
+								}
 								player.sendMessage("Error placing art on the Easel!");
 								ArtMap.instance().getLogger().log(Level.SEVERE, "Error placing art on easel for edit!",e );
 							}
 						} else if ( unsaved ) {
-							if (easel.getItem().getType() == Material.AIR) {
+							try {
 								Canvas canvas = new Canvas(id, player.getName());
-								mountCanvas(itemInHand, canvas);
+								mountCanvas(removed, canvas);
+							} catch (Exception e) {
+								java.util.HashMap<Integer, ItemStack> addLeftover = player.getInventory().addItem(removed);
+								if (!addLeftover.isEmpty()) {
+									easel.getLocation().getWorld().dropItemNaturally(easel.getLocation(), addLeftover.get(0));
+								}
+								player.sendMessage("Error placing art on the Easel!");
+								ArtMap.instance().getLogger().log(Level.SEVERE, "Error placing art on easel for edit!",e );
 							}
 						} else {
+							java.util.HashMap<Integer, ItemStack> addLeftover = player.getInventory().addItem(removed);
+							if (!addLeftover.isEmpty()) {
+								easel.getLocation().getWorld().dropItemNaturally(easel.getLocation(), addLeftover.get(0));
+							}
 							Lang.ActionBar.NEED_CANVAS.send(player);
 							easel.playEffect(EaselEffect.USE_DENIED);
 						}
@@ -156,10 +220,11 @@ public final class EaselEvent {
 
 	private void mountCanvas(ItemStack itemInHand, Canvas canvas) {
 		if (!easel.mountCanvas(canvas)) {
+			java.util.HashMap<Integer, ItemStack> addLeftover = player.getInventory().addItem(itemInHand);
+			if (!addLeftover.isEmpty()) {
+				easel.getLocation().getWorld().dropItemNaturally(easel.getLocation(), addLeftover.get(0));
+			}
 			return;
 		}
-		ItemStack removed = itemInHand.clone();
-		removed.setAmount(1);
-		player.getInventory().removeItem(removed);
 	}
 }
