@@ -105,6 +105,7 @@ public class ArtistHandler implements IArtistHandler {
 							ArtMap.instance().getArtistHandler().removePlayer(sender);
 							easel.setItem(new ItemStack(Material.AIR));
 							ItemUtils.giveItem(sender, art1.getMapItem());
+							Map.sendMapToPlayer(sender, art1.getMapId());
 							sender.sendMessage(String.format(Lang.PREFIX + Lang.SAVE_SUCCESS.get(), title));
 							easel.playEffect(EaselEffect.SAVE_ARTWORK);
 						} catch (DuplicateArtworkException | PermissionException e) {

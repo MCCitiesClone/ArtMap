@@ -15,6 +15,7 @@ import me.Fupery.ArtMap.api.Exception.PermissionException;
 import me.Fupery.ArtMap.Easel.Canvas;
 import me.Fupery.ArtMap.Easel.Easel;
 import me.Fupery.ArtMap.Easel.EaselEffect;
+import me.Fupery.ArtMap.IO.Database.Map;
 import me.Fupery.ArtMap.IO.MapArt;
 import me.Fupery.ArtMap.IO.TitleFilter;
 import me.Fupery.ArtMap.Utils.ItemUtils;
@@ -68,6 +69,7 @@ class CommandSave extends AsyncCommand {
                 ArtMap.instance().getArtistHandler().removePlayer(player);
                 easel.setItem(new ItemStack(Material.AIR));
                 ItemUtils.giveItem(player, art1.getMapItem());
+                Map.sendMapToPlayer(player, art1.getMapId());
                 player.sendMessage(String.format(Lang.PREFIX + Lang.SAVE_SUCCESS.get(), title));
             } catch (DuplicateArtworkException | PermissionException e) {
                 player.sendMessage(e.getMessage());

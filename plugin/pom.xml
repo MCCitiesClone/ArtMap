@@ -31,7 +31,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.6.0</version>
+				<version>3.6.1</version>
 				<executions>
 					<execution>
 						<phase>package</phase>
@@ -65,7 +65,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-enforcer-plugin</artifactId>
-				<version>3.5.0</version>
+				<version>3.6.2</version>
 				<executions>
 					<execution>
 						<id>enforce-maven</id>
@@ -85,12 +85,12 @@
 			<plugin>
 			    <groupId>org.apache.maven.plugins</groupId>
 			    <artifactId>maven-compiler-plugin</artifactId>
-			    <version>3.13.0</version>
+			    <version>3.15.0</version>
 			</plugin>
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.8.12</version>
+				<version>0.8.14</version>
 				<executions>
 					<execution>
 						<goals>
@@ -135,19 +135,19 @@
 		<dependency>
 			<groupId>org.spigotmc</groupId>
 			<artifactId>spigot-api</artifactId>
-			<version>1.14.4-R0.1-SNAPSHOT</version>
+			<version>1.21.8-R0.1-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
-			<version>2.11.0</version>
+			<version>2.13.2</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>net.wesjd</groupId>
     		<artifactId>anvilgui</artifactId>
-    		<version>1.10.6-SNAPSHOT</version>
+    		<version>1.10.11-SNAPSHOT</version>
 			<scope>compile</scope>
 		</dependency>
 		<!--Artmap Spigot/Paper version compatibility-->
@@ -176,35 +176,10 @@
 			<artifactId>Spigot_1_20_2</artifactId>
 			<version>3.9.24</version>
 		</dependency>
-		<!--Artmap plugin compatibility addons-->
-		<dependency>
-			<groupId>com.gitlab.blockstack</groupId>
-			<artifactId>ASkyBlock</artifactId>
-			<version>3.9.24</version>
-		</dependency>
-		<dependency>
-			<groupId>com.gitlab.blockstack</groupId>
-			<artifactId>BentoBox</artifactId>
-			<version>3.9.24</version>
-		</dependency>
-		<dependency>
-			<groupId>com.gitlab.blockstack</groupId>
-			<artifactId>CMI</artifactId>
-			<version>3.9.24</version>
-		</dependency>
+		<!--Artmap plugin compatibility addons (match modules under compatibility/) -->
 		<dependency>
 			<groupId>com.gitlab.blockstack</groupId>
 			<artifactId>Essentials</artifactId>
-			<version>3.9.24</version>
-		</dependency>
-		<dependency>
-			<groupId>com.gitlab.blockstack</groupId>
-			<artifactId>Factions</artifactId>
-			<version>3.9.24</version>
-		</dependency>
-		<dependency>
-			<groupId>com.gitlab.blockstack</groupId>
-			<artifactId>GriefDefender</artifactId>
 			<version>3.9.24</version>
 		</dependency>
 		<dependency>
@@ -214,52 +189,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.gitlab.blockstack</groupId>
-			<artifactId>MarriageMaster</artifactId>
-			<version>3.9.24</version>
-		</dependency>
-		<dependency>
-			<groupId>com.gitlab.blockstack</groupId>
-			<artifactId>PlotSquared4</artifactId>
-			<version>3.9.24</version>
-		</dependency>
-		<dependency>
-			<groupId>com.gitlab.blockstack</groupId>
-			<artifactId>PlotSquared5</artifactId>
-			<version>3.9.24</version>
-		</dependency>
-		<dependency>
-			<groupId>com.gitlab.blockstack</groupId>
-			<artifactId>PlotSquared6</artifactId>
-			<version>3.9.24</version>
-		</dependency>
-		<dependency>
-			<groupId>com.gitlab.blockstack</groupId>
 			<artifactId>PlotSquared7</artifactId>
-			<version>3.9.24</version>
-		</dependency>
-		<dependency>
-			<groupId>com.gitlab.blockstack</groupId>
-			<artifactId>RedProtect</artifactId>
-			<version>3.9.24</version>
-		</dependency>
-		<dependency>
-			<groupId>com.gitlab.blockstack</groupId>
-			<artifactId>Residence</artifactId>
-			<version>3.9.24</version>
-		</dependency>
-		<dependency>
-			<groupId>com.gitlab.blockstack</groupId>
-			<artifactId>SabreFactions</artifactId>
-			<version>3.9.24</version>
-		</dependency>
-		<dependency>
-			<groupId>com.gitlab.blockstack</groupId>
-			<artifactId>Towny</artifactId>
-			<version>3.9.24</version>
-		</dependency>
-		<dependency>
-			<groupId>com.gitlab.blockstack</groupId>
-			<artifactId>USkyBlock</artifactId>
 			<version>3.9.24</version>
 		</dependency>
 		<dependency>
@@ -271,7 +201,7 @@
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-all</artifactId>
-			<version>4.1.66.Final</version>
+			<version>4.2.10.Final</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -293,12 +223,19 @@
 			<version>5.3.0</version>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>net.aufdemrand</groupId>
+			<artifactId>denizen</artifactId>
+			<version>1.0.2-SNAPSHOT</version>
+			<systemPath>${project.basedir}/dependencies/denizin-1.0.2-SNAPSHOT.jar</systemPath>
+  			<scope>system</scope>
+		</dependency>
 		<!-- Tests -->
 		<!-- Where does this come from in NMS? -->
 		<dependency>
 			<groupId>org.xerial</groupId>
 			<artifactId>sqlite-jdbc</artifactId>
-			<version>3.47.0.0</version>
+			<version>3.51.2.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -310,13 +247,13 @@
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-core</artifactId>
-			<version>5.14.2</version>
+			<version>5.21.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>net.bytebuddy</groupId>
 			<artifactId>byte-buddy</artifactId>
-			<version>1.15.10</version>
+			<version>1.18.5</version>
 			<scope>test</scope>
 		  </dependency>
 	</dependencies>

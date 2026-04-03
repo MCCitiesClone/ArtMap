@@ -23,7 +23,7 @@
 		<module>compatibility/Spigot_1_16</module>
 		<module>compatibility/Spigot_1_18</module>
 		<module>compatibility/Spigot_1_20_2</module>
-		<!-- plugin compatibility -->
+		<!-- plugin compatibility (other addons live only on full BlockStack checkout / CI) -->
 		<module>compatibility/Essentials</module>
 		<module>compatibility/GriefPrevention</module>
 		<module>compatibility/PlotSquared7</module>
@@ -43,7 +43,7 @@
 		</repository>
 		<repository>
 			<id>dmulloy2-repo</id>
-			<url>https://repo.dmulloy2.net/nexus/repository/public/</url>
+			<url>https://repo.dmulloy2.net/repository/public/</url>
 		</repository>
 		<repository>
 			<id>jitpack.io</id>
@@ -66,13 +66,17 @@
 			<name>Mojang's Repository</name>
 			<url>https://libraries.minecraft.net/</url>
 		</repository>
+		<repository>
+			<id>mvn-wesjd-net</id>
+			<url>https://mvn.wesjd.net/</url>
+		</repository>
 	</repositories>
 
 	<dependencies>
 		<dependency>
 			<groupId>javax.validation</groupId>
 			<artifactId>validation-api</artifactId>
-			<version>1.1.0.Final</version>
+			<version>2.0.1.Final</version>
 		</dependency>
 	</dependencies>
 
@@ -91,7 +95,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-enforcer-plugin</artifactId>
-				<version>3.5.0</version>
+				<version>3.6.2</version>
 				<executions>
 					<execution>
 						<id>enforce-maven</id>

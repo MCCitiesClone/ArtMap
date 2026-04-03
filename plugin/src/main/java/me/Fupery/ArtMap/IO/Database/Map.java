@@ -118,6 +118,18 @@ public class Map {
         ArtMap.instance().getScheduler().runSafely(() -> player.sendMap(getMap()));
     }
 
+    /**
+     * Pushes map image data to the client. Use after the map item moves (e.g. easel frame → inventory)
+     * so clients still sync when server framed-map ticks are reduced (e.g. Paper
+     * {@code item-frame-cursor-update-interval: -1}).
+     */
+    public static void sendMapToPlayer(Player player, int mapId) {
+        MapView view = ArtMap.getMap(mapId);
+        if (view != null) {
+            ArtMap.instance().getScheduler().runSafely(() -> player.sendMap(view));
+        }
+    }
+
     public int getMapId() {
         return mapId;
     }

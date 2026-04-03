@@ -4,11 +4,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Optional;
 
-import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.bukkit.Bukkit;
+import org.bukkit.Keyed;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
@@ -108,7 +109,23 @@ public class CustomItem {
     }
 
     public void addRecipe() {
-        if (getRecipe() != null) Bukkit.getServer().addRecipe(getBukkitRecipe());
+        if (getRecipe() == null) {
+            return;
+        }
+        Recipe bukkitRecipe = getBukkitRecipe();
+        if (bukkitRecipe instanceof Keyed) {
+            Bukkit.getServer().removeRecipe(((Keyed) bukkitRecipe).getKey());
+        }
+        try {
+            Bukkit.getServer().addRecipe(bukkitRecipe);
+        } catch (IllegalStateException e) {
+            if (bukkitRecipe instanceof Keyed) {
+                Bukkit.getServer().removeRecipe(((Keyed) bukkitRecipe).getKey());
+                Bukkit.getServer().addRecipe(bukkitRecipe);
+            } else {
+                throw e;
+            }
+        }
     }
 
     public Material getMaterial() {
@@ -159,9 +176,7 @@ public class CustomItem {
 
     @Override
     public int hashCode() {
-        HashCodeBuilder builder = new HashCodeBuilder(14, 293);
-        builder.append(key);
-        return builder.toHashCode();
+        return Objects.hashCode(key);
     }
 
     @Override

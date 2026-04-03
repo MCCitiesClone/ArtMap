@@ -216,21 +216,33 @@ public class ArtSession implements IArtSession {
             removeKit(player);
             easel.removeUser();
             canvas.stop();
-            persistMap(true);
+            persistMap(true, true);
             active = false;
         } catch (Exception e) {
             player.sendMessage("Error saving painting on easel. Check logs for more details.");
             ArtMap.instance().getLogger().log(Level.SEVERE, "Error saving painting on easel.", e);
         }
-        // todo map renderer getting killed after save
     }
 
+    @Override
     public void persistMap(boolean resetRenderer) throws SQLException, IOException, NoSuchFieldException,
             IllegalAccessException {
-        if (!dirty) return; //no caching required
+        persistMap(resetRenderer, false);
+    }
+
+    /**
+     * @param force when true, refresh map bytes and renderer even if {@link #dirty} is false (session end after autosave)
+     */
+    void persistMap(boolean resetRenderer, boolean force) throws SQLException, IOException, NoSuchFieldException,
+            IllegalAccessException {
+        if (!dirty && !force) {
+            return;
+        }
         byte[] mapData = canvas.getMap();
         map.setMap(mapData, resetRenderer);
-        ArtMap.instance().getArtDatabase().saveInProgressArt(this.map, mapData);
+        if (dirty) {
+            ArtMap.instance().getArtDatabase().saveInProgressArt(this.map, mapData);
+        }
         dirty = false;
     }
 
