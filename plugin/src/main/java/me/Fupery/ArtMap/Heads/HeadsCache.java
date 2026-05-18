@@ -25,8 +25,10 @@ import javax.net.ssl.HttpsURLConnection;
 
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.scheduler.BukkitTask;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -35,6 +37,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 
 import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.api.Compatability.IBedrockPlayerSupport;
 import me.Fupery.ArtMap.api.Compatability.IHeadsRetriever;
 import me.Fupery.ArtMap.api.Compatability.IHeadsRetriever.HeadCacheResponeType;
 import me.Fupery.ArtMap.api.Compatability.IHeadsRetriever.HeadCacheType;
@@ -47,75 +50,108 @@ import me.Fupery.ArtMap.api.Exception.HeadFetchException;
  * @author wispoffates
  */
 public class HeadsCache {
-	private static String					API_PROFILE_LINK	= "https://sessionserver.mojang.com/session/minecraft/profile/";
+	private static final String API_PROFILE_LINK = "https://sessionserver.mojang.com/session/minecraft/profile/";
+	private static final String API_GEYSER_SKIN = "https://api.geysermc.org/v2/skin/";
+	private static final long CACHE_SAVE_DELAY_TICKS = 100L;
 
-	private static final Map<UUID, TextureData>	textureCache	= Collections.synchronizedMap( new HashMap<>());
-	/** Map to convert names to UUIDs for players that have never logged in to the server.
-	 * This is temporary till DB schema update that adds names to db.
-	 */
+	private static final Map<UUID, TextureData> textureCache = Collections.synchronizedMap(new HashMap<>());
+	/** Map to convert names to UUIDs for players that have never logged in to the server. */
 	private static final Map<String, UUID> nameToUUID = new HashMap<>();
-	private File						   cacheFile;
-	private ArtMap plugin;
+	private final File cacheFile;
+	private final ArtMap plugin;
+	private final IBedrockPlayerSupport bedrockSupport;
+	private volatile boolean cacheDirty;
+	private BukkitTask pendingSaveTask;
 
-	/** Loads the cache from disk */
 	public HeadsCache(ArtMap plugin) {
-		this(plugin,plugin.getConfiguration().HEAD_PREFETCH);
+		this(plugin, plugin.getConfiguration().HEAD_PREFETCH);
 	}
 
 	public HeadsCache(ArtMap plugin, boolean prefetch) {
 		this.plugin = plugin;
-		//Load the cache file
-		cacheFile = new File(plugin.getDataFolder(),"heads_cache.json");
-		if(cacheFile.exists()) {
-			this.loadCacheFile(cacheFile);
+		this.bedrockSupport = plugin.getCompatManager().getBedrockPlayerSupport();
+		cacheFile = new File(plugin.getDataFolder(), "heads_cache.json");
+		if (cacheFile.exists()) {
+			loadCacheFile(cacheFile);
 		}
-
-		//init the cache
 		if (prefetch) {
-			plugin.getServer().getScheduler().runTaskLaterAsynchronously(plugin, this::initHeadCache
-			, plugin.getConfiguration().HEAD_PREFETCH_DELAY);
+			plugin.getServer().getScheduler().runTaskLaterAsynchronously(plugin, this::initHeadCache,
+					plugin.getConfiguration().HEAD_PREFETCH_DELAY);
 		}
-		//int the nameToUUID
-		textureCache.entrySet().stream().forEach(entry -> 
-			nameToUUID.put(entry.getValue().name, entry.getKey())
-		);
+		textureCache.entrySet().forEach(entry -> nameToUUID.put(entry.getValue().name, entry.getKey()));
 	}
 
 	public void updateCache(UUID playerId) {
-		this.updateTexture(playerId);
+		updateTexture(playerId);
+	}
+
+	/**
+	 * Snapshot the artist skin when saving artwork (player should be online).
+	 */
+	public void cacheArtistSkin(Player player) {
+		if (player == null) {
+			return;
+		}
+		UUID playerId = player.getUniqueId();
+		if (isHeadCached(playerId)) {
+			return;
+		}
+		try {
+			IHeadsRetriever headsRetriever = ArtMap.instance().getCompatManager().getHeadsRetriever();
+			Optional<TextureData> textData = headsRetriever.getTextureData(player);
+			if (textData.isPresent()) {
+				storeTexture(playerId, textData.get(), player.getName());
+				return;
+			}
+		} catch (Exception e) {
+			ArtMap.instance().getLogger().log(Level.FINE, "Could not snapshot artist skin from profile", e);
+		}
+		updateTexture(playerId);
+	}
+
+	public void flushCache() {
+		if (pendingSaveTask != null) {
+			pendingSaveTask.cancel();
+			pendingSaveTask = null;
+		}
+		if (cacheDirty || cacheFile.exists()) {
+			saveCacheFile(cacheFile);
+			cacheDirty = false;
+		}
 	}
 
 	private void initHeadCache() {
 		int cached = 0;
 		int mojang = 0;
+		int geyser = 0;
 		int server = 0;
 		int failed = 0;
 		int artistsCount = 0;
 		try {
 			List<UUID> artists = plugin.getArtDatabase().listArtists(UUID.randomUUID());
 			artistsCount = artists.size();
-			plugin.getLogger().info(MessageFormat.format("Async load of {0} artists started. {1} retrieved from disk cache.", artists.size(), textureCache.size()));
-			// skip the first one since we dummied it
+			plugin.getLogger().info(MessageFormat.format(
+					"Async load of {0} artists started. {1} retrieved from disk cache.",
+					artists.size(), textureCache.size()));
 			for (UUID artist : artists) {
-				//check cache
-				if(this.isHeadCached(artist)) {
+				if (isHeadCached(artist)) {
 					cached++;
 				} else {
-					//Update the cache
-					HeadCacheResponeType response = this.updateTexture(artist);
+					HeadCacheResponeType response = updateTexture(artist);
 					switch (response) {
 						case MOJANG_API:
 							mojang++;
-							Thread.sleep(plugin.getConfiguration().HEAD_PREFETCH_PERIOD); //go real slow
+							sleepPrefetchDelay();
 							break;
-						case CACHE:
-							// cached is counted above to prevent unnecessary loading
+						case GEYSER_API:
+							geyser++;
+							sleepPrefetchDelay();
 							break;
 						case NONE:
 							failed++;
-							if(plugin.getConfiguration().HEAD_FETCH_MOJANG) {
-								//go slow if we failed an api call
-								Thread.sleep(plugin.getConfiguration().HEAD_PREFETCH_PERIOD); 
+							if (plugin.getConfiguration().HEAD_FETCH_MOJANG
+									|| plugin.getConfiguration().HEAD_FETCH_GEYSER) {
+								sleepPrefetchDelay();
 							}
 							break;
 						case SERVER:
@@ -123,196 +159,221 @@ public class HeadsCache {
 							break;
 						default:
 							break;
-
 					}
 				}
 			}
 		} catch (Exception e) {
-			plugin.getLogger().log(Level.SEVERE, "Exception during prefetch!",e);
+			plugin.getLogger().log(Level.SEVERE, "Exception during prefetch!", e);
 		}
-		if((cached+mojang) == 0 && artistsCount>1) {
-			plugin.getLogger().warning("Could not preload any player heads! Is the server in offline mode and not behind a Bungeecord?");
+		if ((cached + mojang + geyser) == 0 && artistsCount > 1) {
+			plugin.getLogger().warning(
+					"Could not preload any player heads! Is the server in offline mode and not behind a Bungeecord?");
 		} else {
-			plugin.getLogger().info(MessageFormat.format("Loaded {0} from disk cache, {1} from server, and {2} from mojang out of {3} artists with {4} failures", cached, server, mojang, artistsCount - 1, failed));
-			if(cached+mojang < artistsCount) {
+			plugin.getLogger().info(MessageFormat.format(
+					"Loaded {0} from disk cache, {1} from server, {2} from mojang, {3} from Geyser out of {4} artists with {5} failures",
+					cached, server, mojang, geyser, artistsCount - 1, failed));
+			if (cached + mojang + geyser < artistsCount) {
 				plugin.getLogger().info("Remaining artists will be loaded when needed.");
 			}
 		}
 	}
 
-	/**
-	 * Initialize the cache from a file.
-	 * @param cacheFile The file the textures are cached in.
-	 */
+	private void sleepPrefetchDelay() throws InterruptedException {
+		Thread.sleep(plugin.getConfiguration().HEAD_PREFETCH_PERIOD);
+	}
+
 	private void loadCacheFile(File cacheFile) {
-		try( FileReader reader = new FileReader(cacheFile); ) {
-            Gson gson = ArtMap.instance().getGson(true);
-            Type collectionType = new TypeToken<Map<UUID,TextureData>>() {
-            }.getType();
-			Map<UUID,TextureData> loadedCache = gson.fromJson(reader, collectionType);
-			if(loadedCache != null && !loadedCache.isEmpty()) {
+		try (FileReader reader = new FileReader(cacheFile)) {
+			Gson gson = ArtMap.instance().getGson(true);
+			Type collectionType = new TypeToken<Map<UUID, TextureData>>() {
+			}.getType();
+			Map<UUID, TextureData> loadedCache = gson.fromJson(reader, collectionType);
+			if (loadedCache != null && !loadedCache.isEmpty()) {
 				textureCache.putAll(loadedCache);
 			} else {
 				ArtMap.instance().getLogger().warning("HeadCache load was null? Creating new empty cache.");
 			}
-        } catch (Exception e) {
-            ArtMap.instance().getLogger().log(Level.SEVERE, "Failure parsing head cache! Will start with an empty cache.", e);
-        }
+		} catch (Exception e) {
+			ArtMap.instance().getLogger().log(Level.SEVERE, "Failure parsing head cache! Will start with an empty cache.",
+					e);
+		}
 	}
 
-	/**
-	 * Save the cache to a file.
-	 * @param cacheFile The file the textures should be cached in.
-	 */
 	private synchronized void saveCacheFile(File cacheFile) {
-		try( FileWriter writer = new FileWriter(cacheFile) ){
+		try (FileWriter writer = new FileWriter(cacheFile)) {
 			Gson gson = ArtMap.instance().getGson(true);
-			Type collectionType = new TypeToken<Map<UUID,TextureData>>() {
+			Type collectionType = new TypeToken<Map<UUID, TextureData>>() {
 			}.getType();
-			gson.toJson(textureCache, collectionType, writer);	
+			gson.toJson(textureCache, collectionType, writer);
 		} catch (IOException e) {
 			ArtMap.instance().getLogger().log(Level.SEVERE, "Failure writing head cache!", e);
 		}
 	}
 
-	/**
-	 * Create a head item with the provided texture.
-	 * 
-	 * @param playerId The ID of the player get the skull for.
-	 * 
-	 * @return The Skull.
-	 * @throws HeadFetchException 
-	 */
+	private void scheduleDebouncedSave() {
+		cacheDirty = true;
+		if (pendingSaveTask != null) {
+			pendingSaveTask.cancel();
+		}
+		pendingSaveTask = plugin.getServer().getScheduler().runTaskLaterAsynchronously(plugin, () -> {
+			pendingSaveTask = null;
+			if (cacheDirty) {
+				saveCacheFile(cacheFile);
+				cacheDirty = false;
+			}
+		}, CACHE_SAVE_DELAY_TICKS);
+	}
+
+	private void storeTexture(UUID playerId, TextureData data, String playerName) {
+		textureCache.put(playerId, data);
+		if (playerName != null) {
+			nameToUUID.put(playerName, playerId);
+		}
+		scheduleDebouncedSave();
+	}
+
 	public ItemStack getHead(UUID playerId) throws HeadFetchException {
 		ItemStack head = new ItemStack(Material.PLAYER_HEAD, 1);
 		IHeadsRetriever headsRetriever = ArtMap.instance().getCompatManager().getHeadsRetriever();
-		if(!this.isHeadCached(playerId)) {
-			this.updateTexture(playerId);
+		if (!isHeadCached(playerId)) {
+			updateTexture(playerId);
 		}
 		TextureData textureData = textureCache.get(playerId);
-		Optional<SkullMeta> meta = headsRetriever.getHeadMeta(playerId,textureData);
-		if (!meta.isPresent()) { //try loading it the normal way
+		Optional<SkullMeta> meta = headsRetriever.getHeadMeta(playerId, textureData);
+		if (!meta.isPresent()) {
 			SkullMeta headmeta = (SkullMeta) head.getItemMeta();
 			OfflinePlayer player = ArtMap.instance().getServer().getOfflinePlayer(playerId);
-			if(player.hasPlayedBefore()) {
+			if (player.hasPlayedBefore()) {
 				headmeta.setOwningPlayer(player);
 				headmeta.setDisplayName(player.getName());
 				head.setItemMeta(headmeta);
 			}
-			return head; 
+			return head;
 		}
 		head.setItemMeta(meta.get());
 		return head;
 	}
 
-	/**
-	 * Check if the provided player's texture is cached.
-	 * @param playerId The UUID of the player to check.
-	 * @return True if the player texture is cached.
-	 */
 	public boolean isHeadCached(UUID playerId) {
 		return textureCache.containsKey(playerId);
 	}
 
-	/**
-	 * Retrieve the name of the player from the cache.
-	 * @param playerId The id of the player to lookup.
-	 * @return The name of the player or null if it wasn't cached.
-	 */
 	public String getPlayerName(UUID playerId) {
-		if(textureCache.containsKey(playerId)) {
+		if (textureCache.containsKey(playerId)) {
 			return textureCache.get(playerId).name;
 		}
 		return null;
 	}
 
-	/**
-	 * Search the cache for a artist name that matches the search term.
-	 * @param term The search term.
-	 * @return An array of matching names and an empty array if none or found.
-	 */
 	public List<String> searchCache(String term) {
-		return nameToUUID.keySet().stream().filter( name -> name.contains(term)).collect(Collectors.toList());
+		return nameToUUID.keySet().stream().filter(name -> name.contains(term)).collect(Collectors.toList());
 	}
 
-	/**
-	 * Retrieve the player id for the given name from the cache.
-	 * @param playername The playername to get the ID of.
-	 * @return Optionally the player id if cached.
-	 */
 	public Optional<UUID> getPlayerUUID(String playername) {
 		return Optional.ofNullable(nameToUUID.get(playername));
 	}
 
 	protected HeadCacheResponeType updateTexture(UUID playerId) {
 		try {
-			//Try and get the head texture from the server
 			OfflinePlayer player = ArtMap.instance().getServer().getOfflinePlayer(playerId);
-			//Dont try from the server if they havent been on it recently
-			if(player.hasPlayedBefore()) {
+			if (player.hasPlayedBefore()) {
 				IHeadsRetriever headsRetriever = ArtMap.instance().getCompatManager().getHeadsRetriever();
 				Optional<TextureData> textData = headsRetriever.getTextureData(player);
-				if(textData.isPresent()) {
-					textureCache.put(playerId, textData.get());
-					this.saveCacheFile(cacheFile);
-					nameToUUID.put(player.getName(), player.getUniqueId());
+				if (textData.isPresent()) {
+					storeTexture(playerId, textData.get(), player.getName());
 					return HeadCacheResponeType.SERVER;
 				}
 			}
-			//Use the mojang if the local server look up dies
-			if(plugin.getConfiguration().HEAD_FETCH_MOJANG) {
+
+			boolean bedrock = bedrockSupport.isFloodgatePlayer(playerId);
+			if (bedrock && plugin.getConfiguration().HEAD_FETCH_GEYSER) {
+				Optional<TextureData> geyserData = getGeyserSkin(playerId, player.getName());
+				if (geyserData.isPresent()) {
+					storeTexture(playerId, geyserData.get(), geyserData.get().name);
+					return HeadCacheResponeType.GEYSER_API;
+				}
+			}
+
+			if (!bedrock && plugin.getConfiguration().HEAD_FETCH_MOJANG) {
 				Optional<TextureData> data = getSkinUrl(playerId);
-				if(data.isPresent()) {
-					textureCache.put(playerId, data.get());
-					this.saveCacheFile(cacheFile);
-					nameToUUID.put(data.get().name, playerId);
+				if (data.isPresent()) {
+					storeTexture(playerId, data.get(), data.get().name);
 					return HeadCacheResponeType.MOJANG_API;
 				}
 			}
-		} catch( Exception e ) {
+		} catch (Exception e) {
 			ArtMap.instance().getLogger().log(Level.FINE, "Headfetch failure!", e);
 		}
 		return HeadCacheResponeType.NONE;
 	}
 
-	/**
-	 * Retrieve the current cache size.
-	 * 
-	 * @return The current cache size.
-	 */
 	public int getCacheSize() {
 		return textureCache.size();
 	}
 
-	/*
-	 * HTTP Methods
-	 */
+	private Optional<TextureData> getGeyserSkin(UUID playerId, String fallbackName) throws HeadFetchException {
+		Optional<String> xuid = bedrockSupport.getXuid(playerId);
+		if (!xuid.isPresent()) {
+			return Optional.empty();
+		}
+		String json = getContent(API_GEYSER_SKIN + xuid.get());
+		if (json == null || json.isEmpty()) {
+			return Optional.empty();
+		}
+		JsonObject root = JsonParser.parseString(json).getAsJsonObject();
+		if (!root.has("value")) {
+			return Optional.empty();
+		}
+		String value = root.get("value").getAsString();
+		String name = bedrockSupport.getUsername(playerId).orElse(fallbackName);
+		if (name == null || name.isEmpty()) {
+			name = decodeProfileName(value).orElse("Bedrock");
+		}
+		return Optional.of(new TextureData(name, value, HeadCacheType.PROFILE));
+	}
+
+	private static Optional<String> decodeProfileName(String base64Value) {
+		try {
+			String json = new String(java.util.Base64.getDecoder().decode(base64Value));
+			JsonObject profile = JsonParser.parseString(json).getAsJsonObject();
+			if (profile.has("profileName")) {
+				return Optional.of(profile.get("profileName").getAsString());
+			}
+		} catch (Exception ignored) {
+			// fall through
+		}
+		return Optional.empty();
+	}
+
 	private static String getContent(String link) throws HeadFetchException {
 		BufferedReader br = null;
 		try {
 			URL url = new URI(link).toURL();
 			HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
+			conn.setConnectTimeout(10000);
+			conn.setReadTimeout(10000);
 			br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 			String inputLine;
 			StringBuilder sb = new StringBuilder();
 			while ((inputLine = br.readLine()) != null) {
 				sb.append(inputLine);
 			}
-			br.close();
 			return sb.toString();
 		} catch (MalformedURLException | URISyntaxException e) {
 			ArtMap.instance().getLogger().log(Level.SEVERE, "Failure getting head!", e);
-			throw new HeadFetchException("Failure getting head!",e);
+			throw new HeadFetchException("Failure getting head!", e);
 		} catch (IOException e) {
-			ArtMap.instance().getLogger().info("Error retrieving head texture.  Server is likely over API limit temporarily.  The head will be fetched on use later.");
-			throw new HeadFetchException("Error retrieving head texture.  Server is likely over API limit temporarily.  The head will be fetched on use later.",e);
+			ArtMap.instance().getLogger().info(
+					"Error retrieving head texture. The head will be fetched on use later.");
+			throw new HeadFetchException(
+					"Error retrieving head texture. The head will be fetched on use later.", e);
 		} finally {
-			try {
-				if(br != null) {
+			if (br != null) {
+				try {
 					br.close();
+				} catch (IOException ignored) {
+					// don't care on close
 				}
-			} catch (IOException e) {
-				//don't care on close.
 			}
 		}
 	}
@@ -321,21 +382,20 @@ public class HeadsCache {
 		String id = uuid.toString().replace("-", "");
 		try {
 			String json = getContent(API_PROFILE_LINK + id);
-			if(json == null) {
+			if (json == null) {
 				throw new HeadFetchException("Skin texture could not be loaded! invalid uuid!");
 			}
 			JsonObject o = JsonParser.parseString(json).getAsJsonObject();
 			String name = o.get("name").getAsString();
-			JsonArray jArray= o.get("properties").getAsJsonArray();
-			String jsonBase64 = null;
-			if(jArray.size() > 0) {
-				jsonBase64 = jArray.get(0).getAsJsonObject().get("value").getAsString();
-			} else {
-				return Optional.empty();
+			JsonArray jArray = o.get("properties").getAsJsonArray();
+			if (jArray.size() > 0) {
+				String jsonBase64 = jArray.get(0).getAsJsonObject().get("value").getAsString();
+				return Optional.of(new TextureData(name, jsonBase64, HeadCacheType.PROFILE));
 			}
-			return Optional.of(new TextureData(name, jsonBase64, HeadCacheType.PROFILE));
-		} catch ( Throwable e ) {
-			throw new HeadFetchException(API_PROFILE_LINK+id+ " :: Failure parsing skin texture json. You may ignore ths warning.",e);
+			return Optional.empty();
+		} catch (Throwable e) {
+			throw new HeadFetchException(API_PROFILE_LINK + id
+					+ " :: Failure parsing skin texture json. You may ignore this warning.", e);
 		}
 	}
 }

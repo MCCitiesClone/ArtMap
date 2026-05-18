@@ -197,6 +197,11 @@
 			<artifactId>WorldGuard</artifactId>
 			<version>3.9.24</version>
 		</dependency>
+		<dependency>
+			<groupId>com.gitlab.blockstack</groupId>
+			<artifactId>Floodgate</artifactId>
+			<version>3.9.24</version>
+		</dependency>
 		<!--  Mojang dependency -->
 		<dependency>
 			<groupId>io.netty</groupId>

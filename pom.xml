@@ -28,6 +28,7 @@
 		<module>compatibility/GriefPrevention</module>
 		<module>compatibility/PlotSquared7</module>
 		<module>compatibility/WorldGuard</module>
+		<module>compatibility/Floodgate</module>
 		<module>DataTables</module>
 		<module>plugin</module>
 	</modules>
@@ -69,6 +70,10 @@
 		<repository>
 			<id>mvn-wesjd-net</id>
 			<url>https://mvn.wesjd.net/</url>
+		</repository>
+		<repository>
+			<id>opencollab</id>
+			<url>https://repo.opencollab.dev/main/</url>
 		</repository>
 	</repositories>
 
