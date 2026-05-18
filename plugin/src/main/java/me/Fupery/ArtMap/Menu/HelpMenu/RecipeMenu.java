@@ -29,7 +29,7 @@ public class RecipeMenu extends BasicMenu implements ChildMenu {
     private boolean adminMenu;
 
     public RecipeMenu(boolean adminMenu) {
-		super(ChatColor.DARK_BLUE + Lang.MenuTitle.MENU_RECIPE.get(), new MenuType(18));
+		super(ChatColor.DARK_BLUE + Lang.MenuTitle.MENU_RECIPE.get(), new MenuType(9));
         this.adminMenu = adminMenu;
     }
 
