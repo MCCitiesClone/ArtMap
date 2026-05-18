@@ -10,6 +10,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.ItemStack;
 
+import java.sql.SQLException;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.Canvas.CanvasSize;
 import me.Fupery.ArtMap.IO.Database.Map;
 import me.Fupery.ArtMap.Recipe.ArtItem;
 
@@ -62,7 +66,12 @@ public class MapArt {
     }
 
     public ItemStack getMapItem() {
-        return new ArtItem.ArtworkItem(id, title, artistName, date).toItemStack();
+        CanvasSize size = CanvasSize.defaultSize();
+        try {
+            size = ArtMap.instance().getArtDatabase().getMapCanvasSize(id);
+        } catch (SQLException ignored) {
+        }
+        return new ArtItem.ArtworkItem(id, title, artistName, date, size).toItemStack();
     }
 
     public int getMapId() {

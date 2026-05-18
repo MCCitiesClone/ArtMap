@@ -37,6 +37,26 @@ CANVAS:
     - "epe"
     - "lel"
 
+CANVAS_MEDIUM:
+  MATERIALS:
+    l: LEATHER
+    p: MAP
+    b: EMERALD_BLOCK
+  SHAPE:
+    - "pmp"
+    - "lbl"
+    - "pmp"
+
+CANVAS_LARGE:
+  MATERIALS:
+    l: LEATHER
+    p: MAP
+    d: DIAMOND_BLOCK
+  SHAPE:
+    - "pmp"
+    - "ldl"
+    - "pmp"
+
 PAINT_BRUSH:
   MATERIALS:
     s: STICK

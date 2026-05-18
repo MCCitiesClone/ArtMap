@@ -4,11 +4,12 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 
+import me.Fupery.ArtMap.Canvas.CanvasSize;
 import me.Fupery.ArtMap.api.Config.Lang;
 
 public enum ArtMaterial {
 
-	EASEL, CANVAS, MAP_ART, PAINT_BRUSH, COMPASS, COAL, FEATHER, PAINTBUCKET, SPONGE;
+	EASEL, CANVAS, CANVAS_MEDIUM, CANVAS_LARGE, MAP_ART, PAINT_BRUSH, COMPASS, COAL, FEATHER, PAINTBUCKET, SPONGE;
 
     private CustomItem artItem;
 
@@ -19,6 +20,14 @@ public enum ArtMaterial {
         CANVAS.artItem = new ArtItem.CraftableItem("CANVAS", Material.PAPER, ArtItem.CANVAS_KEY)
 				.name(Lang.RECIPE_CANVAS_NAME)
 				.tooltip(Lang.Array.RECIPE_CANVAS);
+
+        CANVAS_MEDIUM.artItem = new ArtItem.CraftableItem("CANVAS_MEDIUM", Material.PAPER, ArtItem.CANVAS_MEDIUM_KEY)
+				.name(Lang.RECIPE_CANVAS_MEDIUM_NAME)
+				.tooltip(Lang.Array.RECIPE_CANVAS_MEDIUM);
+
+        CANVAS_LARGE.artItem = new ArtItem.CraftableItem("CANVAS_LARGE", Material.PAPER, ArtItem.CANVAS_LARGE_KEY)
+				.name(Lang.RECIPE_CANVAS_LARGE_NAME)
+				.tooltip(Lang.Array.RECIPE_CANVAS_LARGE);
 
         MAP_ART.artItem = new ArtItem.ArtworkItem(-1, "Artwork", null, null);
 
@@ -49,10 +58,30 @@ public enum ArtMaterial {
     }
 
     public static ArtMaterial getCraftItemType(ItemStack item) {
+        if (item == null) {
+            return null;
+        }
+        // Check canvas tiers before generic CANVAS (all are PAPER with distinct lore keys).
+        if (CANVAS_LARGE.artItem.checkItem(item)) {
+            return CANVAS_LARGE;
+        }
+        if (CANVAS_MEDIUM.artItem.checkItem(item)) {
+            return CANVAS_MEDIUM;
+        }
         for (ArtMaterial material : values()) {
-            if (material.artItem.checkItem(item)) return material;
+            if (material.artItem.checkItem(item)) {
+                return material;
+            }
         }
         return null;
+    }
+
+    public static boolean isAnyCanvas(ItemStack item) {
+        return CanvasSize.isCanvasMaterial(getCraftItemType(item));
+    }
+
+    public static CanvasSize getCanvasSize(ItemStack item) {
+        return CanvasSize.fromArtMaterial(getCraftItemType(item));
     }
 
     public static ArtItem.ArtworkItem getMapArt(int id, String title, String playerName, String date) {

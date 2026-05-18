@@ -12,6 +12,7 @@ import org.bukkit.map.MapRenderer;
 import org.bukkit.map.MapView;
 
 import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.Canvas.CanvasSize;
 import me.Fupery.ArtMap.IO.CompressedMap;
 import me.Fupery.ArtMap.Painting.GenericMapRenderer;
 
@@ -76,7 +77,12 @@ public class Map {
         Map newMap = new Map(newMapView);
         byte[] mapData = readData();
         newMap.setMap(mapData);
-        ArtMap.instance().getArtDatabase().saveInProgressArt(newMap, mapData);
+        CanvasSize size = CanvasSize.defaultSize();
+        try {
+            size = ArtMap.instance().getArtDatabase().getMapCanvasSize(this.getMapId());
+        } catch (SQLException ignored) {
+        }
+        ArtMap.instance().getArtDatabase().saveInProgressArt(newMap, mapData, size);
         return newMap;
     }
 
@@ -135,7 +141,7 @@ public class Map {
     }
 
     public enum Size {
-        MAX(128 * 128), STANDARD(32 * 32);
+        MAX(128 * 128), MEDIUM(64 * 64), STANDARD(32 * 32);
         public final int value;
 
         Size(int length) {

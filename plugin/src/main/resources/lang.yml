@@ -111,7 +111,10 @@ RECIPE_PLAYER_MAP_COPY: "Right-click to get a copy of your artwork.  This will u
 RECIPE_PLAYER_MAP_COPY_MISSING: "§4§lYou do not have an empty map in your inventory!"
 RECIPE_HELP: "§a/art §2for help"
 RECIPE_EASEL_NAME: "Easel"
-RECIPE_CANVAS_NAME: "Canvas"
+RECIPE_CANVAS_NAME: "Canvas (32x32)"
+RECIPE_CANVAS_MEDIUM_NAME: "Canvas (64x64)"
+RECIPE_CANVAS_LARGE_NAME: "Canvas (128x128)"
+CANVAS_SIZE_MISMATCH: "§cThat artwork uses a different canvas size."
 RECIPE_PAINT_BRUSH_NAME: "§e•§6§lSave§e•"
 RECIPE_ARTWORK_ARTIST: "by %s" # '%s' is replaced with the name of the artist who created this artwork
 
@@ -222,6 +225,17 @@ RECIPE_EASEL:
   - "§cSave first!"
 RECIPE_CANVAS:
   - "§b§oPaint on me!"
+  - "§732 x 32 pixel grid."
+  - "§7Use on an §aEasel"
+  - "§7to start painting."
+RECIPE_CANVAS_MEDIUM:
+  - "§b§oMedium canvas"
+  - "§764 x 64 pixel grid."
+  - "§7Use on an §aEasel"
+  - "§7to start painting."
+RECIPE_CANVAS_LARGE:
+  - "§b§oLarge canvas"
+  - "§7128 x 128 pixel grid."
   - "§7Use on an §aEasel"
   - "§7to start painting."
 RECIPE_PAINT_BRUSH:

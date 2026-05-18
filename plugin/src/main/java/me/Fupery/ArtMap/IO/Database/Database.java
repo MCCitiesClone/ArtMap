@@ -21,6 +21,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
 
 import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.Canvas.CanvasSize;
 import me.Fupery.ArtMap.api.Config.Lang;
 import me.Fupery.ArtMap.api.Exception.DuplicateArtworkException;
 import me.Fupery.ArtMap.api.Exception.PermissionException;
@@ -43,6 +44,7 @@ public final class Database implements IDatabase {
         artworks = new ArtTable(database);
         maps = new MapTable(database);
         database.initialize(artworks, maps);
+        maps.migrate();
         int delay = ArtMap.instance().getConfiguration().ARTWORK_AUTO_SAVE;
         this.autosaveTask = ArtMap.instance().getScheduler().ASYNC.runTimer(AUTO_SAVE , delay, delay);
     }
@@ -126,7 +128,8 @@ public final class Database implements IDatabase {
 						// Force update of map data
 						mapArt.get().getMap().setMap(ArtMap.instance().getReflection().getMap(newView), true);
 						// Update database
-						CompressedMap map = CompressedMap.compress(copy.getOriginalId(), newView);
+						CanvasSize savedSize = getMapCanvasSize(copy.getOriginalId());
+						CompressedMap map = CompressedMap.compress(copy.getOriginalId(), newView, savedSize);
 						maps.updateMap(map);
 						this.deleteInProgressArt(new Map(copy.getMapId())); // recycle the copy
 						return mapArt.get();
@@ -142,7 +145,8 @@ public final class Database implements IDatabase {
 		// new artwork
 		MapArt artwork = new MapArt(art.getMapId(), title, player.getUniqueId(),player.getName(),new Date());
 		MapView mapView = ArtMap.getMap(art.getMapId());
-		CompressedMap map = CompressedMap.compress(mapView);
+		CompressedMap map = CompressedMap.compress(mapView.getId(),
+				ArtMap.instance().getReflection().getMap(mapView), art.getSize());
 		artworks.addArtwork(artwork);
 		if (maps.containsMap(map.getId())) {
 			maps.updateMap(map);
@@ -338,12 +342,25 @@ public final class Database implements IDatabase {
      */
     @Override
     public void saveInProgressArt(Map map, byte[] data) throws SQLException, IOException {
-        CompressedMap compressedMap = CompressedMap.compress(map.getMapId(), data);
+        saveInProgressArt(map, data, CanvasSize.defaultSize());
+    }
+
+    public void saveInProgressArt(Map map, byte[] data, CanvasSize size) throws SQLException, IOException {
+        CompressedMap compressedMap = CompressedMap.compress(map.getMapId(), data, size);
         if (maps.containsMap(map.getMapId())) {
             maps.updateMap(compressedMap);
         } else {
             maps.addMap(compressedMap);
-        } 
+        }
+    }
+
+    @Override
+    public CanvasSize getMapCanvasSize(int mapId) throws SQLException {
+        Optional<Integer> factor = maps.getResolutionFactor(mapId);
+        if (factor.isPresent()) {
+            return CanvasSize.fromResolutionFactor(factor.get());
+        }
+        return CanvasSize.defaultSize();
     }
 
     /**

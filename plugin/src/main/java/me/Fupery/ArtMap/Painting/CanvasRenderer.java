@@ -24,9 +24,8 @@ public class CanvasRenderer extends MapRenderer implements ICanvasRenderer {
     private AtomicBoolean active;
     private Cursor cursor;
 
-    CanvasRenderer(Map map, int yawOffset) {
+    CanvasRenderer(Map map, int yawOffset, PixelTableManager pixelTable) {
         this.map = map;
-        PixelTableManager pixelTable = ArtMap.instance().getPixelTable();
         if (pixelTable == null) {
             resolutionFactor = 0;
             axisLength = 0;
@@ -37,7 +36,7 @@ public class CanvasRenderer extends MapRenderer implements ICanvasRenderer {
         axisLength = 128 / resolutionFactor;
         maxUpdate = 16384;// TODO: 22/09/2016 magic value
         loadMap();
-        cursor = new Cursor(yawOffset, ArtMap.instance().getPixelTable());
+        cursor = new Cursor(yawOffset, pixelTable);
         active = new AtomicBoolean(true);
     }
 
