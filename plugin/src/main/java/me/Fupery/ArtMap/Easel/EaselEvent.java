@@ -2,6 +2,7 @@ package me.Fupery.ArtMap.Easel;
 
 import java.sql.SQLException;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.logging.Level;
 
 import org.bukkit.Material;
@@ -51,17 +52,17 @@ public final class EaselEvent {
 			case RIGHT_CLICK:
 				if (easel.getItem().getType() == Material.FILLED_MAP) {
 					try {
-						Optional<Integer> mapId = ItemUtils.getMapID(easel.getItem());
+						OptionalInt mapId = ItemUtils.getMapID(easel.getItem());
 						if (mapId.isPresent()) {
 							CanvasSize size = CanvasSize.defaultSize();
 							Optional<Canvas> mounted = Canvas.getCanvas(easel.getItem());
 							if (mounted.isPresent()) {
 								size = mounted.get().getSize();
 							} else {
-								size = ArtMap.instance().getArtDatabase().getMapCanvasSize(mapId.get());
+								size = ArtMap.instance().getArtDatabase().getMapCanvasSize(mapId.getAsInt());
 							}
 							ArtMap.instance().getArtistHandler().addPlayer(player, easel,
-								new Map(mapId.get()),
+								new Map(mapId.getAsInt()),
 								EaselPart.getYawOffset(easel.getFacing()),
 								size);
 						} else {
@@ -168,13 +169,13 @@ public final class EaselEvent {
 				if (!ArtItem.isArtwork(currentItem)) {
 					return;
 				}
-				Optional<Integer> currentId;
+				OptionalInt currentId;
 				try {
 					currentId = ItemUtils.getMapID(currentItem);
 				} catch (ArtMapException e) {
 					return;
 				}
-				if (!currentId.isPresent() || currentId.get() != finalId) {
+				if (currentId.isEmpty() || currentId.getAsInt() != finalId) {
 					return;
 				}
 				ItemStack removed = currentItem.clone();

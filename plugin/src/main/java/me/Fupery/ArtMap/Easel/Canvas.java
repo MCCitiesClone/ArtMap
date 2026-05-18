@@ -3,6 +3,7 @@ package me.Fupery.ArtMap.Easel;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 
 import javax.validation.constraints.NotNull;
 
@@ -67,11 +68,11 @@ public class Canvas {
 			throw new ArtMapException("Artmap tried to getCanvas() on something that is not a filled map? :: " + (item==null ? "NULL item" : item.getType()+""));
 		}
 
-		Optional<Integer> optMapId = ItemUtils.getMapID(item);
-		if(!optMapId.isPresent()) {
+		OptionalInt optMapId = ItemUtils.getMapID(item);
+		if (optMapId.isEmpty()) {
 			return Optional.empty();
 		}
-		int mapId = optMapId.get();
+		int mapId = optMapId.getAsInt();
 		MapMeta meta = (MapMeta) item.getItemMeta();
 		CanvasSize itemSize = parseCanvasSize(meta);
 
