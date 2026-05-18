@@ -51,6 +51,7 @@ import me.Fupery.ArtMap.api.Exception.HeadFetchException;
  */
 public class HeadsCache {
 	private static final String API_PROFILE_LINK = "https://sessionserver.mojang.com/session/minecraft/profile/";
+	private static final String API_PLAYERDB = "https://playerdb.co/api/player/minecraft/";
 	private static final String API_GEYSER_SKIN = "https://api.geysermc.org/v2/skin/";
 	private static final long CACHE_SAVE_DELAY_TICKS = 100L;
 
@@ -123,6 +124,7 @@ public class HeadsCache {
 	private void initHeadCache() {
 		int cached = 0;
 		int mojang = 0;
+		int playerDb = 0;
 		int geyser = 0;
 		int server = 0;
 		int failed = 0;
@@ -143,6 +145,10 @@ public class HeadsCache {
 							mojang++;
 							sleepPrefetchDelay();
 							break;
+						case PLAYERDB_API:
+							playerDb++;
+							sleepPrefetchDelay();
+							break;
 						case GEYSER_API:
 							geyser++;
 							sleepPrefetchDelay();
@@ -150,6 +156,7 @@ public class HeadsCache {
 						case NONE:
 							failed++;
 							if (plugin.getConfiguration().HEAD_FETCH_MOJANG
+									|| plugin.getConfiguration().HEAD_FETCH_PLAYERDB
 									|| plugin.getConfiguration().HEAD_FETCH_GEYSER) {
 								sleepPrefetchDelay();
 							}
@@ -165,14 +172,14 @@ public class HeadsCache {
 		} catch (Exception e) {
 			plugin.getLogger().log(Level.SEVERE, "Exception during prefetch!", e);
 		}
-		if ((cached + mojang + geyser) == 0 && artistsCount > 1) {
+		if ((cached + mojang + playerDb + geyser) == 0 && artistsCount > 1) {
 			plugin.getLogger().warning(
 					"Could not preload any player heads! Is the server in offline mode and not behind a Bungeecord?");
 		} else {
 			plugin.getLogger().info(MessageFormat.format(
-					"Loaded {0} from disk cache, {1} from server, {2} from mojang, {3} from Geyser out of {4} artists with {5} failures",
-					cached, server, mojang, geyser, artistsCount - 1, failed));
-			if (cached + mojang + geyser < artistsCount) {
+					"Loaded {0} from disk cache, {1} from server, {2} from mojang, {3} from PlayerDB, {4} from Geyser out of {5} artists with {6} failures",
+					cached, server, mojang, playerDb, geyser, artistsCount - 1, failed));
+			if (cached + mojang + playerDb + geyser < artistsCount) {
 				plugin.getLogger().info("Remaining artists will be loaded when needed.");
 			}
 		}
@@ -294,11 +301,20 @@ public class HeadsCache {
 				}
 			}
 
-			if (!bedrock && plugin.getConfiguration().HEAD_FETCH_MOJANG) {
-				Optional<TextureData> data = getSkinUrl(playerId);
-				if (data.isPresent()) {
-					storeTexture(playerId, data.get(), data.get().name);
-					return HeadCacheResponeType.MOJANG_API;
+			if (!bedrock) {
+				if (plugin.getConfiguration().HEAD_FETCH_MOJANG) {
+					Optional<TextureData> data = getSkinUrl(playerId);
+					if (data.isPresent()) {
+						storeTexture(playerId, data.get(), data.get().name);
+						return HeadCacheResponeType.MOJANG_API;
+					}
+				}
+				if (plugin.getConfiguration().HEAD_FETCH_PLAYERDB) {
+					Optional<TextureData> playerDbData = getPlayerDbSkin(playerId, player.getName());
+					if (playerDbData.isPresent()) {
+						storeTexture(playerId, playerDbData.get(), playerDbData.get().name);
+						return HeadCacheResponeType.PLAYERDB_API;
+					}
 				}
 			}
 		} catch (Exception e) {
@@ -345,13 +361,24 @@ public class HeadsCache {
 		return Optional.empty();
 	}
 
+	private String httpUserAgent() {
+		return "ArtMap/" + plugin.getDescription().getVersion();
+	}
+
 	private static String getContent(String link) throws HeadFetchException {
+		return getContent(link, null);
+	}
+
+	private static String getContent(String link, String userAgent) throws HeadFetchException {
 		BufferedReader br = null;
 		try {
 			URL url = new URI(link).toURL();
 			HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
 			conn.setConnectTimeout(10000);
 			conn.setReadTimeout(10000);
+			if (userAgent != null) {
+				conn.setRequestProperty("User-Agent", userAgent);
+			}
 			br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 			String inputLine;
 			StringBuilder sb = new StringBuilder();
@@ -376,6 +403,40 @@ public class HeadsCache {
 				}
 			}
 		}
+	}
+
+	private Optional<TextureData> getPlayerDbSkin(UUID uuid, String fallbackName) throws HeadFetchException {
+		String json = getContent(API_PLAYERDB + uuid, httpUserAgent());
+		if (json == null || json.isEmpty()) {
+			return Optional.empty();
+		}
+		try {
+			JsonObject root = JsonParser.parseString(json).getAsJsonObject();
+			if (!root.has("success") || !root.get("success").getAsBoolean()) {
+				return Optional.empty();
+			}
+			JsonObject player = root.getAsJsonObject("data").getAsJsonObject("player");
+			String name = player.has("username") ? player.get("username").getAsString() : fallbackName;
+			if (name == null || name.isEmpty()) {
+				name = fallbackName;
+			}
+			if (player.has("properties")) {
+				JsonArray properties = player.getAsJsonArray("properties");
+				for (int i = 0; i < properties.size(); i++) {
+					JsonObject prop = properties.get(i).getAsJsonObject();
+					if (prop.has("name") && "textures".equals(prop.get("name").getAsString()) && prop.has("value")) {
+						return Optional.of(new TextureData(name, prop.get("value").getAsString(), HeadCacheType.PROFILE));
+					}
+				}
+			}
+			if (player.has("skin_texture")) {
+				return Optional.of(
+						new TextureData(name, player.get("skin_texture").getAsString(), HeadCacheType.URL));
+			}
+		} catch (Exception e) {
+			throw new HeadFetchException(API_PLAYERDB + uuid + " :: Failure parsing PlayerDB response.", e);
+		}
+		return Optional.empty();
 	}
 
 	private static Optional<TextureData> getSkinUrl(UUID uuid) throws HeadFetchException {

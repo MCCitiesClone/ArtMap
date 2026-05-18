@@ -33,6 +33,9 @@ guiOnly: false
 #Fetch unknown Java player heads from Mojang session server.
 headFetchMojang: true
 
+#Java backup when Mojang fails — https://playerdb.co (Java players only).
+headFetchPlayerDb: true
+
 #Fetch Bedrock (Floodgate) player heads from Geyser Global API when not on the server profile cache.
 headFetchGeyser: true
 
