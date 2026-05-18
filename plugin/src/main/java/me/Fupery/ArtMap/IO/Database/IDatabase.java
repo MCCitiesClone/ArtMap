@@ -10,6 +10,7 @@ import java.util.logging.Level;
 import org.bukkit.entity.Player;
 
 import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.Canvas.CanvasSize;
 import me.Fupery.ArtMap.Easel.Canvas;
 import me.Fupery.ArtMap.IO.CompressedMap;
 import me.Fupery.ArtMap.IO.MapArt;
@@ -205,6 +206,10 @@ public interface IDatabase {
      * @throws IOException
      */
     void saveInProgressArt(Map map, byte[] data) throws SQLException, IOException;
+
+    void saveInProgressArt(Map map, byte[] data, CanvasSize size) throws SQLException, IOException;
+
+    CanvasSize getMapCanvasSize(int mapId) throws SQLException;
 
     /**
      * Delete an inprogress piece artwork and clear its data.

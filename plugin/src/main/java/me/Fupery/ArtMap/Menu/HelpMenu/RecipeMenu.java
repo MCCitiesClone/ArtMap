@@ -29,7 +29,7 @@ public class RecipeMenu extends BasicMenu implements ChildMenu {
     private boolean adminMenu;
 
     public RecipeMenu(boolean adminMenu) {
-		super(ChatColor.DARK_BLUE + Lang.MenuTitle.MENU_RECIPE.get(), new MenuType(9));
+		super(ChatColor.DARK_BLUE + Lang.MenuTitle.MENU_RECIPE.get(), new MenuType(18));
         this.adminMenu = adminMenu;
     }
 
@@ -43,6 +43,8 @@ public class RecipeMenu extends BasicMenu implements ChildMenu {
                 new StaticButton(ArtMap.instance().getBukkitVersion().getVersion().getSign(), Lang.Array.INFO_RECIPES.get()),
                 new RecipeButton(ArtMaterial.EASEL),
                 new RecipeButton(ArtMaterial.CANVAS),
+                new RecipeButton(ArtMaterial.CANVAS_MEDIUM),
+                new RecipeButton(ArtMaterial.CANVAS_LARGE),
             });
         } else {
             return CompletableFuture.completedFuture(new Button[] {
@@ -51,6 +53,8 @@ public class RecipeMenu extends BasicMenu implements ChildMenu {
                 new StaticButton(ArtMap.instance().getBukkitVersion().getVersion().getSign(), Lang.Array.INFO_RECIPES.get()),
                 new RecipeButton(ArtMaterial.EASEL),
                 new RecipeButton(ArtMaterial.CANVAS),
+                new RecipeButton(ArtMaterial.CANVAS_MEDIUM),
+                new RecipeButton(ArtMaterial.CANVAS_LARGE),
                 new RecipeButton(ArtMaterial.PAINT_BRUSH),
             });
         }

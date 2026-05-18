@@ -8,9 +8,11 @@ import javax.validation.constraints.NotNull;
 
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.MapMeta;
 
 import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.Canvas.CanvasSize;
 import me.Fupery.ArtMap.IO.MapArt;
 import me.Fupery.ArtMap.IO.Database.Map;
 import me.Fupery.ArtMap.Recipe.ArtItem;
@@ -27,14 +29,28 @@ public class Canvas {
 
 	protected int mapId;
 	protected String artist;
+	protected final CanvasSize size;
 
 	public Canvas(Map map, String artist) {
-		this(map.getMapId(), artist);
+		this(map, artist, CanvasSize.defaultSize());
+	}
+
+	public Canvas(Map map, String artist, CanvasSize size) {
+		this(map.getMapId(), artist, size);
 	}
 
 	protected Canvas(int mapId, String artist) {
+		this(mapId, artist, CanvasSize.defaultSize());
+	}
+
+	protected Canvas(int mapId, String artist, CanvasSize size) {
 		this.mapId = mapId;
 		this.artist = artist;
+		this.size = size == null ? CanvasSize.defaultSize() : size;
+	}
+
+	public CanvasSize getSize() {
+		return size;
 	}
 
 	@NotNull
@@ -51,50 +67,55 @@ public class Canvas {
 			throw new ArtMapException("Artmap tried to getCanvas() on something that is not a filled map? :: " + (item==null ? "NULL item" : item.getType()+""));
 		}
 
-		//Get map data
 		Optional<Integer> optMapId = ItemUtils.getMapID(item);
 		if(!optMapId.isPresent()) {
 			return Optional.empty();
 		}
 		int mapId = optMapId.get();
 		MapMeta meta = (MapMeta) item.getItemMeta();
+		CanvasSize itemSize = parseCanvasSize(meta);
 
-		//Is this an unfinished artwork?
 		if(ArtItem.isUnfinishedArtwork(item)) {
-			//extract artist and id
-			return Optional.of(new Canvas(mapId, parseArtist(meta.getLore()).orElse("unknown")));
+			return Optional.of(new Canvas(mapId, parseArtist(meta.getLore()).orElse("unknown"), itemSize));
 		}
 		
-		//Is this a copy artwork?
 		if(ArtItem.isCopyArtwork(item)) {
-			//Extract id, artist, and original title
 			Optional<MapArt> original = ArtMap.instance().getArtDatabase().getArtwork(meta.getDisplayName());
-			if(original.isPresent()) {	//There is a chance the original was deleted at which point we act like its an unfished artwork
-				return Optional.of(new CanvasCopy(new Map(mapId), original.get()));
+			if(original.isPresent()) {
+				CanvasSize size = resolveStoredSize(mapId, itemSize);
+				return Optional.of(new CanvasCopy(new Map(mapId), original.get(), size));
 			} else {
-				//deleted from database try parsing the text
-				return Optional.of(new Canvas(new Map(mapId), parseArtist(meta.getLore()).orElse("unknown")));
+				return Optional.of(new Canvas(new Map(mapId), parseArtist(meta.getLore()).orElse("unknown"), itemSize));
 			}
 		}
 
-		//Check if this is an artmap tracked piece. Legacy check.
-		//unsaved
 		if(ArtMap.instance().getArtDatabase().containsUnsavedArtwork(mapId)){
-			return Optional.of(new Canvas(mapId, "unknown"));
+			CanvasSize size = resolveStoredSize(mapId, itemSize);
+			return Optional.of(new Canvas(mapId, "unknown", size));
 		} 
-		//previously saved but missing tags
 		Optional<MapArt> art = ArtMap.instance().getArtDatabase().getArtwork(mapId);
 		if(art.isPresent()) {
-			return Optional.of(new CanvasCopy(art.get().getMap(), art.get()));
+			CanvasSize size = resolveStoredSize(mapId, itemSize);
+			return Optional.of(new CanvasCopy(art.get().getMap(), art.get(), size));
 		}
 		return Optional.empty();
 	}
 
-	/**
-	 * Parse the artist name out of the lore String.
-	 * @param meta List of Strings that is the item meta 
-	 * @return The Artist name.
-	 */
+	private static CanvasSize resolveStoredSize(int mapId, CanvasSize itemSize) throws SQLException {
+		CanvasSize stored = ArtMap.instance().getArtDatabase().getMapCanvasSize(mapId);
+		if (itemSize != CanvasSize.defaultSize() && stored != itemSize) {
+			return itemSize;
+		}
+		return stored;
+	}
+
+	public static CanvasSize parseCanvasSize(ItemMeta meta) {
+		if (meta != null && meta.hasLore()) {
+			return ArtItem.parseCanvasSize(meta.getLore());
+		}
+		return CanvasSize.defaultSize();
+	}
+
 	public static Optional<String> parseArtist(List<String> meta) {
 		String key = Lang.RECIPE_ARTWORK_ARTIST.get().replace("%s", "").trim();
 		Optional<String> artistName = meta.stream().filter(s -> s.contains(key)).findFirst();
@@ -105,33 +126,31 @@ public class Canvas {
 	}
 
 	public ItemStack getEaselItem() {
-		return new InProgressArtworkItem(this.mapId, artist).toItemStack();
+		return new InProgressArtworkItem(this.mapId, artist, size).toItemStack();
 	}
 
 	public int getMapId() {
 		return this.mapId;
 	}
 
-	/**
-	 * 
-	 */
 	public static class CanvasCopy extends Canvas {
 
 		private MapArt original;
 
 		public CanvasCopy(Map map, MapArt original) {
-			super(map,original.getArtistName());
+			this(map, original, CanvasSize.defaultSize());
+		}
+
+		public CanvasCopy(Map map, MapArt original, CanvasSize size) {
+			super(map, original.getArtistName(), size);
 			this.original = original;
 		}
 
 		@Override
 		public ItemStack getEaselItem() {
-			return new ArtItem.CopyArtworkItem(this.mapId, original.getTitle(), original.getArtistName(), original.getDate()).toItemStack();
+			return new ArtItem.CopyArtworkItem(this.mapId, original.getTitle(), original.getArtistName(), original.getDate(), size).toItemStack();
 		}
 
-		/**
-		 * @return The original map id.
-		 */
 		public int getOriginalId() {
 			return this.original.getMapId();
 		}

@@ -52,6 +52,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.Canvas.CanvasSize;
 import me.Fupery.ArtMap.api.Colour.ArtDye;
 import me.Fupery.ArtMap.api.Colour.BasicDye;
 import me.Fupery.ArtMap.api.Colour.DyeType;
@@ -336,9 +337,16 @@ public class MockUtil {
          HeadsCache cache = mock(HeadsCache.class);
          when(mockArtmap.getHeadsCache()).thenReturn(cache);
 
-         //mock DataTabes
-         PixelTableManager pixelTableManager = PixelTableManager.buildTables(mockArtmap);
-         when(mockArtmap.getPixelTable()).thenReturn(pixelTableManager);
+         //mock DataTables
+         Map<CanvasSize, PixelTableManager> pixelTables = PixelTableManager.buildAllTables(mockArtmap);
+         if (pixelTables == null) {
+             throw new IllegalStateException(
+                     "Failed to load ArtMap pixel tables for tests. Ensure the DataTables module is built and on the test classpath.");
+         }
+         when(mockArtmap.getPixelTables()).thenReturn(pixelTables);
+         when(mockArtmap.getPixelTable()).thenReturn(pixelTables.get(CanvasSize.NORMAL));
+         when(mockArtmap.getPixelTable(any(CanvasSize.class)))
+                 .thenAnswer(invocation -> pixelTables.get(invocation.getArgument(0)));
 
          this.mockArtmap = mockArtmap;
          return this;

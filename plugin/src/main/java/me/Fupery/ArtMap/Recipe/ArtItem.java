@@ -13,7 +13,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.MapMeta;
 
+import java.util.List;
+
 import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.Canvas.CanvasSize;
 import me.Fupery.ArtMap.api.Config.Lang;
 
 public class ArtItem {
@@ -22,6 +25,9 @@ public class ArtItem {
     private static final String UNFINISHED_TAG = ChatColor.AQUA.toString() + ChatColor.ITALIC + "Unfinished Artwork";
     private static final String COPY_TAG = ChatColor.AQUA.toString() + ChatColor.ITALIC + "Artwork Copy";
     public static final String CANVAS_KEY = ChatColor.AQUA.toString() + ChatColor.ITALIC + "ArtMap Canvas";
+    public static final String CANVAS_MEDIUM_KEY = ChatColor.AQUA.toString() + ChatColor.ITALIC + "ArtMap Canvas Medium";
+    public static final String CANVAS_LARGE_KEY = ChatColor.AQUA.toString() + ChatColor.ITALIC + "ArtMap Canvas Large";
+    static final String CANVAS_SIZE_LORE_PREFIX = ChatColor.DARK_GRAY.toString() + "CanvasSize:";
     public static final String EASEL_KEY = ChatColor.AQUA.toString() + ChatColor.ITALIC + "ArtMap Easel";
     public static final String KIT_KEY = ChatColor.DARK_GRAY + "[ArtKit]";
     public static final String PREVIEW_KEY = ChatColor.AQUA.toString() + ChatColor.ITALIC + "Preview Artwork";
@@ -89,6 +95,26 @@ public class ArtItem {
      * @param itemStack The ItemStack to check.
      * @return  True if the ItemStack is an Copy Artwork false otherwise.
      */
+    public static CanvasSize parseCanvasSize(List<String> lore) {
+        if (lore == null) {
+            return CanvasSize.defaultSize();
+        }
+        for (String line : lore) {
+            if (line != null && line.startsWith(CANVAS_SIZE_LORE_PREFIX)) {
+                try {
+                    return CanvasSize.fromResolutionFactor(Integer.parseInt(line.substring(CANVAS_SIZE_LORE_PREFIX.length())));
+                } catch (NumberFormatException ignored) {
+                    return CanvasSize.defaultSize();
+                }
+            }
+        }
+        return CanvasSize.defaultSize();
+    }
+
+    static String canvasSizeLore(CanvasSize size) {
+        return CANVAS_SIZE_LORE_PREFIX + size.getResolutionFactor();
+    }
+
     public static boolean isCopyArtwork(ItemStack itemStack) {
         if (itemStack != null
                 && itemStack.getType() == Material.FILLED_MAP
@@ -106,7 +132,7 @@ public class ArtItem {
     static class CraftableItem extends CustomItem {
 
         public CraftableItem(String itemName, Material material, String uniqueKey) {
-            super(material, KIT_KEY, uniqueKey);
+            super(material, uniqueKey);
             try {
                 recipe(ArtMap.instance().getRecipeLoader().getRecipe(itemName.toUpperCase()));
             } catch (RecipeLoader.InvalidRecipeException e) {
@@ -124,13 +150,17 @@ public class ArtItem {
          * @param date - The date the item was created.
          */
         public ArtworkItem(int id, String title, String artistName, String date) {
+            this(id, title, artistName, date, CanvasSize.defaultSize());
+        }
+
+        public ArtworkItem(int id, String title, String artistName, String date, CanvasSize size) {
 			super(new ItemStack(Material.FILLED_MAP), ARTWORK_TAG);
 			MapMeta meta = (MapMeta) this.stack.get().getItemMeta();
 			meta.setMapView(ArtMap.getMap(id));
 			this.stack.get().setItemMeta(meta);
             name(title);
             String artist = GOLD + String.format(Lang.RECIPE_ARTWORK_ARTIST.get(), (YELLOW + artistName));
-            tooltip(artist, String.valueOf(DARK_GREEN) + ITALIC + date);
+            tooltip(artist, String.valueOf(DARK_GREEN) + ITALIC + date, canvasSizeLore(size == null ? CanvasSize.defaultSize() : size));
         }
     }
 
@@ -140,13 +170,17 @@ public class ArtItem {
          * @param id - The map id of the inprogress artwork.
          */
         public InProgressArtworkItem(int id, String artistName) {
+            this(id, artistName, CanvasSize.defaultSize());
+        }
+
+        public InProgressArtworkItem(int id, String artistName, CanvasSize size) {
 			super(new ItemStack(Material.FILLED_MAP), UNFINISHED_TAG);
 			MapMeta meta = (MapMeta) this.stack.get().getItemMeta();
 			meta.setMapView(ArtMap.getMap(id));
 			this.stack.get().setItemMeta(meta);
             name("Unfinished");
             String artist = GOLD + String.format(Lang.RECIPE_ARTWORK_ARTIST.get(), (YELLOW + artistName));
-            tooltip(artist);
+            tooltip(artist, canvasSizeLore(size == null ? CanvasSize.defaultSize() : size));
         }
     }
 
@@ -156,13 +190,17 @@ public class ArtItem {
          * @param id
          */
         public CopyArtworkItem(int id, String title, String artistName, String date) {
+            this(id, title, artistName, date, CanvasSize.defaultSize());
+        }
+
+        public CopyArtworkItem(int id, String title, String artistName, String date, CanvasSize size) {
 			super(new ItemStack(Material.FILLED_MAP), COPY_TAG);
 			MapMeta meta = (MapMeta) this.stack.get().getItemMeta();
 			meta.setMapView(ArtMap.getMap(id));
 			this.stack.get().setItemMeta(meta);
             name(title);
             String artist = GOLD + String.format(Lang.RECIPE_ARTWORK_ARTIST.get(), (YELLOW + artistName));
-            tooltip(artist, String.valueOf(DARK_GREEN) + ITALIC + date);
+            tooltip(artist, String.valueOf(DARK_GREEN) + ITALIC + date, canvasSizeLore(size == null ? CanvasSize.defaultSize() : size));
         }
     }
 

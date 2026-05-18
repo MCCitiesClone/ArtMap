@@ -15,6 +15,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.Canvas.CanvasSize;
 import me.Fupery.ArtMap.api.Config.Lang;
 import me.Fupery.ArtMap.api.Exception.ArtMapException;
 import me.Fupery.ArtMap.api.Exception.DuplicateArtworkException;
@@ -124,9 +125,9 @@ public class ArtistHandler implements IArtistHandler {
 		return false;
 	}
 
-	public void addPlayer(final Player player, Easel easel, Map map, int yawOffset)
+	public void addPlayer(final Player player, Easel easel, Map map, int yawOffset, CanvasSize canvasSize)
 			throws ReflectiveOperationException, SQLException, IOException {
-		ArtSession session = new ArtSession(player, easel, map, yawOffset);
+		ArtSession session = new ArtSession(player, easel, map, yawOffset, canvasSize);
 		if (session.start(player)) {
 			ArtMap.instance().getProtocolManager().getPacketReceiver().injectPlayer(player);
 			artists.put(player.getUniqueId(), session);

@@ -19,6 +19,7 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.Canvas.CanvasSize;
 import me.Fupery.ArtMap.api.Colour.ArtDye;
 import me.Fupery.ArtMap.api.Colour.DyeType;
 import me.Fupery.ArtMap.api.Colour.Palette;
@@ -43,6 +44,7 @@ public class ArtSession implements IArtSession {
     private final Brush DROPPER;
     private final Easel easel;
     private final Map map;
+    private final CanvasSize canvasSize;
     private Brush currentBrush;
     private long lastStroke;
     private ItemStack[] inventory;
@@ -52,9 +54,10 @@ public class ArtSession implements IArtSession {
     private boolean dirty = true;
     private int artkitPage = 0;
 
-    ArtSession(Player player, Easel easel, Map map, int yawOffset) {
+    ArtSession(Player player, Easel easel, Map map, int yawOffset, CanvasSize canvasSize) {
         this.easel = easel;
-        canvas = new CanvasRenderer(map, yawOffset);
+        this.canvasSize = canvasSize == null ? CanvasSize.defaultSize() : canvasSize;
+        canvas = new CanvasRenderer(map, yawOffset, ArtMap.instance().getPixelTable(this.canvasSize));
         currentBrush = null;
         lastStroke = System.currentTimeMillis();
         DYE = new Dye(canvas, player);
@@ -62,6 +65,10 @@ public class ArtSession implements IArtSession {
         FILL = new Fill(canvas, player, (Dropper) DROPPER);
         FLIP = new Flip(canvas, player);
         this.map = map;
+    }
+
+    public CanvasSize getCanvasSize() {
+        return canvasSize;
     }
 
     public boolean start(Player player) throws SQLException, IOException {
@@ -241,7 +248,7 @@ public class ArtSession implements IArtSession {
         byte[] mapData = canvas.getMap();
         map.setMap(mapData, resetRenderer);
         if (dirty) {
-            ArtMap.instance().getArtDatabase().saveInProgressArt(this.map, mapData);
+            ArtMap.instance().getArtDatabase().saveInProgressArt(this.map, mapData, canvasSize);
         }
         dirty = false;
     }

@@ -22,6 +22,10 @@ import org.bukkit.plugin.java.JavaPluginLoader;
 
 import me.Fupery.ArtMap.Command.CommandHandler;
 import me.Fupery.ArtMap.Compatibility.CompatibilityManager;
+import java.util.Collections;
+import java.util.Map;
+
+import me.Fupery.ArtMap.Canvas.CanvasSize;
 import me.Fupery.ArtMap.Easel.Easel;
 import me.Fupery.ArtMap.Heads.HeadsCache;
 import me.Fupery.ArtMap.IO.PixelTableManager;
@@ -55,7 +59,7 @@ public class ArtMap extends JavaPlugin implements IArtMap {
 	private RecipeLoader recipeLoader;
 	private CompatibilityManager compatManager;
 	private ProtocolHandler protocolHandler;
-	private PixelTableManager pixelTable;
+	private Map<CanvasSize, PixelTableManager> pixelTables = Collections.emptyMap();
 	private Configuration config;
 	private EventManager eventManager;
 	private PreviewManager previewManager;
@@ -131,7 +135,22 @@ public class ArtMap extends JavaPlugin implements IArtMap {
 	}
 
 	public PixelTableManager getPixelTable() {
-		return this.pixelTable;
+		return getPixelTable(CanvasSize.defaultSize());
+	}
+
+	public PixelTableManager getPixelTable(CanvasSize size) {
+		if (size == null) {
+			size = CanvasSize.defaultSize();
+		}
+		return pixelTables.get(size);
+	}
+
+	public Map<CanvasSize, PixelTableManager> getPixelTables() {
+		return pixelTables;
+	}
+
+	public void setPixelTables(Map<CanvasSize, PixelTableManager> tables) {
+		this.pixelTables = tables == null ? Collections.emptyMap() : tables;
 	}
 
 	public HeadsCache getHeadsCache() {
@@ -174,11 +193,13 @@ public class ArtMap extends JavaPlugin implements IArtMap {
 			database = new Database(this);
 			dbUpgradeNeeded = this.checkIfDatabaseUpgradeNeeded();
 			this.getLogger().info(" MC version: " + bukkitVersion.toString() ) ;
-			if ((pixelTable = PixelTableManager.buildTables(this)) == null) {
+			Map<CanvasSize, PixelTableManager> loadedTables = PixelTableManager.buildAllTables(this);
+			if (loadedTables == null) {
 				getLogger().warning(Lang.INVALID_DATA_TABLES.get());
 				getPluginLoader().disablePlugin(this);
 				return;
 			}
+			pixelTables = loadedTables;
 			if (!recipesLoaded) {
 				recipeLoader = new RecipeLoader(this, config);
 				recipeLoader.loadRecipes();

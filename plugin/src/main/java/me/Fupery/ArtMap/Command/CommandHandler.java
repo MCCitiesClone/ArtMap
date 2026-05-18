@@ -89,7 +89,7 @@ public class CommandHandler implements CommandExecutor {
 			}
 		});
 		
-		commands.put("give", new AsyncCommand("artmap.admin", "/art give <player> <easel|canvas|paintbrush|unsaved:<id>|artwork:<title>> [amount]", true) {
+		commands.put("give", new AsyncCommand("artmap.admin", "/art give <player> <easel|canvas|canvas_medium|canvas_large|paintbrush|unsaved:<id>|artwork:<title>> [amount]", true) {
 			@Override
 			public void runCommand(CommandSender sender, String[] args, ReturnMessage msg) {
 				Player player = Bukkit.getPlayer(args[1]);
@@ -99,6 +99,10 @@ public class CommandHandler implements CommandExecutor {
 						item = ArtMaterial.EASEL.getItem();
 					} else if (args[2].equalsIgnoreCase("canvas")) {
 						item = ArtMaterial.CANVAS.getItem();
+					} else if (args[2].equalsIgnoreCase("canvas_medium")) {
+						item = ArtMaterial.CANVAS_MEDIUM.getItem();
+					} else if (args[2].equalsIgnoreCase("canvas_large")) {
+						item = ArtMaterial.CANVAS_LARGE.getItem();
 					} else if (args[2].equalsIgnoreCase("paintbrush")) {
 						item = ArtMaterial.PAINT_BRUSH.getItem();
 					} else if (args[2].contains("unsaved:")) {
