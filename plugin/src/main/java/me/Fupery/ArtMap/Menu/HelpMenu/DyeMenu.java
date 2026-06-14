@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 
 import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.Easel.EaselConstants;
 import me.Fupery.ArtMap.api.Config.Lang;
 import me.Fupery.ArtMap.Menu.API.ListMenu;
 import me.Fupery.ArtMap.Menu.Button.Button;
@@ -27,7 +28,7 @@ public class DyeMenu extends ListMenu {
 	protected Future<List<Button>> getListItems() {
 		List<Button> buttons = new ArrayList<>();
         ArtDye[] dyes = ArtMap.instance().getDyePalette().getDyes(DyeType.DYE);
-		buttons.add(new StaticButton(ArtMap.instance().getBukkitVersion().getVersion().getSign(), Lang.Array.INFO_DYES.get()));
+		buttons.add(new StaticButton(EaselConstants.SIGN, Lang.Array.INFO_DYES.get()));
 		// buttons[53] = new CloseButton();
 
 		for (ArtDye dye : dyes) {

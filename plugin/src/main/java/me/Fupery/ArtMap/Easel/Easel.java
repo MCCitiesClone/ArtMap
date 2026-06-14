@@ -20,6 +20,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.Easel.EaselConstants;
 import me.Fupery.ArtMap.Recipe.ArtMaterial;
 import me.Fupery.ArtMap.Utils.ChunkLocation;
 import me.Fupery.ArtMap.Utils.LocationHelper;
@@ -128,7 +129,7 @@ public class Easel {
 
     private boolean hasSign() {
         BlockState state = location.getBlock().getState();
-        return (location.getBlock().getType() == ArtMap.instance().getBukkitVersion().getVersion().getWallSign()
+        return (location.getBlock().getType() == EaselConstants.WALL_SIGN
                 && state instanceof Sign && ((Sign) state).getLine(3).equals(EaselPart.ARBITRARY_SIGN_ID));
     }
 

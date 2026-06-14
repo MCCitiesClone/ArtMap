@@ -11,18 +11,12 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.source>17</maven.compiler.source>
-		<maven.compiler.target>17</maven.compiler.target>
+		<maven.compiler.source>21</maven.compiler.source>
+		<maven.compiler.target>21</maven.compiler.target>
 	</properties>
 
 	<modules>
 		<module>api</module>
-		<!-- spigot/paper compatibility -->
-		<module>compatibility/Spigot_1_13</module>
-		<module>compatibility/Spigot_1_14</module>
-		<module>compatibility/Spigot_1_16</module>
-		<module>compatibility/Spigot_1_18</module>
-		<module>compatibility/Spigot_1_20_2</module>
 		<!-- plugin compatibility (other addons live only on full BlockStack checkout / CI) -->
 		<module>compatibility/Essentials</module>
 		<module>compatibility/GriefPrevention</module>
@@ -49,10 +43,6 @@
 		<repository>
 			<id>jitpack.io</id>
 			<url>https://jitpack.io</url>
-		</repository>
-		<repository>
-			<id>citizen</id>
-			<url>https://maven.citizensnpcs.co/repo</url>
 		</repository>
 		<repository>
 			<id>codemc-repo</id>

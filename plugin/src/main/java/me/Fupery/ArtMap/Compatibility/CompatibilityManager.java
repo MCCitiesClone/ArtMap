@@ -13,13 +13,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import me.Fupery.ArtMap.ArtMap;
 import me.Fupery.ArtMap.Compatibility.impl.FloodgateCompat;
 import me.Fupery.ArtMap.Compatibility.impl.GriefPreventionCompat;
-import me.Fupery.ArtMap.Compatibility.impl.HeadRetrieval_1_13;
-import me.Fupery.ArtMap.Compatibility.impl.HeadRetrieval_1_20_2;
 import me.Fupery.ArtMap.Heads.NoBedrockPlayerSupport;
-import me.Fupery.ArtMap.Compatibility.impl.Palette_1_13;
-import me.Fupery.ArtMap.Compatibility.impl.Palette_1_14;
-import me.Fupery.ArtMap.Compatibility.impl.Palette_1_16;
-import me.Fupery.ArtMap.Compatibility.impl.Palette_1_18;
 import me.Fupery.ArtMap.Compatibility.impl.EssentialsCompat;
 import me.Fupery.ArtMap.Compatibility.impl.PlotSquared7Compat;
 import me.Fupery.ArtMap.Compatibility.impl.WorldGuardCompat;
@@ -28,17 +22,13 @@ import me.Fupery.ArtMap.api.Colour.Palette;
 import me.Fupery.ArtMap.api.Compatability.EventListener;
 import me.Fupery.ArtMap.api.Compatability.IBedrockPlayerSupport;
 import me.Fupery.ArtMap.api.Compatability.IHeadsRetriever;
-import me.Fupery.ArtMap.api.Compatability.ReflectionHandler;
 import me.Fupery.ArtMap.api.Compatability.RegionHandler;
 import me.Fupery.ArtMap.api.Easel.ClickType;
 import me.Fupery.ArtMap.api.Utils.Version;
-import me.Fupery.ArtMap.api.Utils.VersionHandler;
-import me.Fupery.ArtMap.api.Utils.VersionHandler.BukkitVersion;
 
 public class CompatibilityManager implements RegionHandler {
     private List<RegionHandler> regionHandlers;
     private List<EventListener> eventListeners;
-    private ReflectionHandler reflectionHandler;
     private Palette palette;
     private IHeadsRetriever headsRetriever;
     private IBedrockPlayerSupport bedrockPlayerSupport;
@@ -49,7 +39,6 @@ public class CompatibilityManager implements RegionHandler {
         loadRegionHandler("WorldGuard",WorldGuardCompat.class, "WorldGuard 7");
         loadRegionHandler("GriefPrevention",GriefPreventionCompat.class,"Grief Prevention");
         loadRegionHandler("PlotSquared",PlotSquared7Compat.class, "Plot Squared 7", new Version(7), new Version(9999));
-        reflectionHandler = new VanillaReflectionHandler();
         loadEventListener("Essentials", EssentialsCompat.class, "Essentials");
         bedrockPlayerSupport = new NoBedrockPlayerSupport();
         loadBedrockSupport();
@@ -59,24 +48,8 @@ public class CompatibilityManager implements RegionHandler {
                     regionHandler.getClass().getSimpleName().replace("Compat", "")));
         }
 
-        //figure out palette version to load
-        BukkitVersion version = VersionHandler.checkVersion();
-        if(version.isLessOrEqualTo(BukkitVersion.v1_13)) {
-            palette = new Palette_1_13();
-        } else if(version.isLessThan(BukkitVersion.v1_16)) {
-            palette = new Palette_1_14();
-        } else if(version.isLessThan(BukkitVersion.v1_18)) {
-            palette = new Palette_1_16();
-        } else {
-            palette = new Palette_1_18();
-        }
-
-        //which head loading code should we be using
-        if(version.isLessThan(BukkitVersion.v1_20_2)) {
-            headsRetriever = new HeadRetrieval_1_13();
-        } else {
-            headsRetriever = new HeadRetrieval_1_20_2();
-        }
+        palette = new ArtPalette();
+        headsRetriever = new HeadRetriever();
     }
 
     public boolean isPluginLoaded(String pluginName) {
@@ -101,10 +74,6 @@ public class CompatibilityManager implements RegionHandler {
             if (!regionHandler.checkInteractAllowed(player, entity, click)) return false;
         }
         return true;
-    }
-
-    public ReflectionHandler getReflectionHandler() {
-        return reflectionHandler;
     }
 
     @Override
@@ -220,7 +189,6 @@ public class CompatibilityManager implements RegionHandler {
         for (EventListener eventHandler : eventListeners) {
             sb.append(eventHandler.getClass().getSimpleName() + " [LOADED:" + eventHandler.isLoaded() + "], ");
         }
-        sb.append("Reflection Handler: " + reflectionHandler.getClass().getSimpleName());
         sb.append("Palette Version: " + palette.getClass().getSimpleName());
         return sb.toString();
     }

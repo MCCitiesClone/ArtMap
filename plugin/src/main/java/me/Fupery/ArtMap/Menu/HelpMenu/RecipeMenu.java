@@ -11,6 +11,7 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.Easel.EaselConstants;
 import me.Fupery.ArtMap.api.Config.Lang;
 import me.Fupery.ArtMap.Menu.API.BasicMenu;
 import me.Fupery.ArtMap.Menu.API.ChildMenu;
@@ -40,7 +41,7 @@ public class RecipeMenu extends BasicMenu implements ChildMenu {
             return CompletableFuture.completedFuture(new Button[] {
                 new LinkedButton(ArtMap.instance().getMenuHandler().MENU.HELP, Material.MAGENTA_GLAZED_TERRACOTTA, back), 
                 new StaticButton(Material.AIR),
-                new StaticButton(ArtMap.instance().getBukkitVersion().getVersion().getSign(), Lang.Array.INFO_RECIPES.get()),
+                new StaticButton(EaselConstants.SIGN, Lang.Array.INFO_RECIPES.get()),
                 new RecipeButton(ArtMaterial.EASEL),
                 new RecipeButton(ArtMaterial.CANVAS),
                 new RecipeButton(ArtMaterial.CANVAS_MEDIUM),
@@ -50,7 +51,7 @@ public class RecipeMenu extends BasicMenu implements ChildMenu {
             return CompletableFuture.completedFuture(new Button[] {
                 new LinkedButton(ArtMap.instance().getMenuHandler().MENU.HELP, Material.MAGENTA_GLAZED_TERRACOTTA, back), 
                 new StaticButton(Material.AIR),
-                new StaticButton(ArtMap.instance().getBukkitVersion().getVersion().getSign(), Lang.Array.INFO_RECIPES.get()),
+                new StaticButton(EaselConstants.SIGN, Lang.Array.INFO_RECIPES.get()),
                 new RecipeButton(ArtMaterial.EASEL),
                 new RecipeButton(ArtMaterial.CANVAS),
                 new RecipeButton(ArtMaterial.CANVAS_MEDIUM),

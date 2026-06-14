@@ -3,15 +3,13 @@ package me.Fupery.ArtMap.Listeners;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import me.Fupery.ArtMap.api.Utils.VersionHandler;
-
 import java.util.HashSet;
 import java.util.Set;
 
 public class EventManager {
     private final Set<RegisteredListener> listeners;
 
-    public EventManager(JavaPlugin plugin, VersionHandler version) {
+    public EventManager(JavaPlugin plugin) {
         listeners = new HashSet<>();
         listeners.add(new PlayerInteractListener());
         listeners.add(new PlayerInteractEaselListener());

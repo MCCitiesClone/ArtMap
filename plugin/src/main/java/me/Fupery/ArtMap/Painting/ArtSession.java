@@ -274,7 +274,7 @@ public class ArtSession implements IArtSession {
     /**
      * Autosave: snapshot canvas on the main thread, write to DB asynchronously.
      */
-    void autosave() {
+    public void autosave() {
         byte[] mapData;
         int mapId;
         CanvasSize size;

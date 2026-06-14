@@ -58,7 +58,7 @@ import me.Fupery.ArtMap.api.Colour.BasicDye;
 import me.Fupery.ArtMap.api.Colour.DyeType;
 import me.Fupery.ArtMap.api.Colour.Palette;
 import me.Fupery.ArtMap.Compatibility.CompatibilityManager;
-import me.Fupery.ArtMap.Compatibility.impl.HeadRetrieval_1_13;
+import me.Fupery.ArtMap.Compatibility.HeadRetriever;
 import me.Fupery.ArtMap.api.Config.Configuration;
 import me.Fupery.ArtMap.Easel.Canvas;
 import me.Fupery.ArtMap.Easel.Canvas.CanvasCopy;
@@ -248,7 +248,7 @@ public class MockUtil {
          CompatibilityManager mockCompatibilityManager = mock(CompatibilityManager.class);
          when(mockArtmap.getCompatManager()).thenReturn(mockCompatibilityManager);
          when(mockCompatibilityManager.getBedrockPlayerSupport()).thenReturn(new NoBedrockPlayerSupport());
-         when(mockCompatibilityManager.getHeadsRetriever()).thenReturn(new HeadRetrieval_1_13());
+         when(mockCompatibilityManager.getHeadsRetriever()).thenReturn(new HeadRetriever());
          //mock logger
          Logger testLogger = Logger.getLogger("TestLogger");
          when(mockArtmap.getLogger()).thenReturn(testLogger);
