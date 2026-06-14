@@ -6,10 +6,6 @@ import org.bukkit.entity.Player;
 
 public abstract class PacketReceiver {
 
-    public abstract void injectPlayer(Player player) throws ReflectiveOperationException;
-
-    public abstract void uninjectPlayer(Player player);
-
     public abstract void close();
 
     /**

@@ -45,10 +45,6 @@
 			<url>https://jitpack.io</url>
 		</repository>
 		<repository>
-			<id>citizen</id>
-			<url>https://maven.citizensnpcs.co/repo</url>
-		</repository>
-		<repository>
 			<id>codemc-repo</id>
 			<url>https://repo.codemc.org/repository/maven-public/</url>
 		</repository>

@@ -22,7 +22,6 @@ import me.Fupery.ArtMap.api.Colour.Palette;
 import me.Fupery.ArtMap.api.Compatability.EventListener;
 import me.Fupery.ArtMap.api.Compatability.IBedrockPlayerSupport;
 import me.Fupery.ArtMap.api.Compatability.IHeadsRetriever;
-import me.Fupery.ArtMap.api.Compatability.ReflectionHandler;
 import me.Fupery.ArtMap.api.Compatability.RegionHandler;
 import me.Fupery.ArtMap.api.Easel.ClickType;
 import me.Fupery.ArtMap.api.Utils.Version;
@@ -30,7 +29,6 @@ import me.Fupery.ArtMap.api.Utils.Version;
 public class CompatibilityManager implements RegionHandler {
     private List<RegionHandler> regionHandlers;
     private List<EventListener> eventListeners;
-    private ReflectionHandler reflectionHandler;
     private Palette palette;
     private IHeadsRetriever headsRetriever;
     private IBedrockPlayerSupport bedrockPlayerSupport;
@@ -41,7 +39,6 @@ public class CompatibilityManager implements RegionHandler {
         loadRegionHandler("WorldGuard",WorldGuardCompat.class, "WorldGuard 7");
         loadRegionHandler("GriefPrevention",GriefPreventionCompat.class,"Grief Prevention");
         loadRegionHandler("PlotSquared",PlotSquared7Compat.class, "Plot Squared 7", new Version(7), new Version(9999));
-        reflectionHandler = new VanillaReflectionHandler();
         loadEventListener("Essentials", EssentialsCompat.class, "Essentials");
         bedrockPlayerSupport = new NoBedrockPlayerSupport();
         loadBedrockSupport();
@@ -77,10 +74,6 @@ public class CompatibilityManager implements RegionHandler {
             if (!regionHandler.checkInteractAllowed(player, entity, click)) return false;
         }
         return true;
-    }
-
-    public ReflectionHandler getReflectionHandler() {
-        return reflectionHandler;
     }
 
     @Override
@@ -196,7 +189,6 @@ public class CompatibilityManager implements RegionHandler {
         for (EventListener eventHandler : eventListeners) {
             sb.append(eventHandler.getClass().getSimpleName() + " [LOADED:" + eventHandler.isLoaded() + "], ");
         }
-        sb.append("Reflection Handler: " + reflectionHandler.getClass().getSimpleName());
         sb.append("Palette Version: " + palette.getClass().getSimpleName());
         return sb.toString();
     }

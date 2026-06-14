@@ -15,20 +15,10 @@ import me.Fupery.ArtMap.api.Config.Lang;
 
 public class ArtPalette implements Palette {
 
-	private static final Material GRASS_MATERIAL = resolveGrassMaterial();
-
-	private static Material resolveGrassMaterial() {
-		Material material = Material.matchMaterial("SHORT_GRASS");
-		if (material == null) {
-			material = Material.matchMaterial("GRASS");
-		}
-		return material != null ? material : Material.FERN;
-	}
-
 	public final ArtDye
 
 			VOID  				= new BasicDye(Lang.DYE_VOID.get(), "VOID", 0, ChatColor.DARK_GREEN, Material.ENDER_EYE),
-	        GRASS 				= new BasicDye(Lang.DYE_GRASS.get(), "GRASS", 1, ChatColor.DARK_GREEN, GRASS_MATERIAL),
+	        GRASS 				= new BasicDye(Lang.DYE_GRASS.get(), "GRASS", 1, ChatColor.DARK_GREEN, Material.SHORT_GRASS),
 			CREAM 				= new BasicDye(Lang.DYE_CREAM.get(), "CREAM", 2, ChatColor.GOLD, Material.PUMPKIN_SEEDS),
 	        LIGHT_GRAY 			= new BasicDye(Lang.DYE_LIGHT_GRAY.get(), "LIGHT_GRAY", 3, ChatColor.GRAY, Material.COBWEB),
 	        RED 				= new BasicDye(Lang.DYE_RED.get(), "RED", 4, ChatColor.RED, Material.RED_DYE),

@@ -49,8 +49,6 @@ public class CommandHandler implements CommandExecutor {
 
 		commands.put("test", new CommandTest());
 
-		commands.put("convert", new CommandConvert());
-
 		commands.put("repair", new Repair());
 
 		commands.put("search", new Search());

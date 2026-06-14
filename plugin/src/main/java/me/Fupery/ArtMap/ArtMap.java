@@ -31,9 +31,6 @@ import me.Fupery.ArtMap.Heads.HeadsCache;
 import me.Fupery.ArtMap.IO.PixelTableManager;
 import me.Fupery.ArtMap.IO.Database.Database;
 import me.Fupery.ArtMap.IO.Database.IDatabase;
-import me.Fupery.ArtMap.IO.Legacy.DatabaseConverter;
-import me.Fupery.ArtMap.IO.Legacy.FlatDatabaseConverter;
-import me.Fupery.ArtMap.IO.Legacy.V2DatabaseConverter;
 import me.Fupery.ArtMap.IO.Protocol.ProtocolHandler;
 import me.Fupery.ArtMap.Listeners.EventManager;
 import me.Fupery.ArtMap.Menu.Handler.MenuHandler;
@@ -65,7 +62,6 @@ public class ArtMap extends JavaPlugin implements IArtMap {
 	private final ConcurrentMap<Location, Easel> easels;
 	private Palette dyePalette;
 	private boolean recipesLoaded = false;
-	private boolean dbUpgradeNeeded;
 
 	public static ArtMap instance() {
 		return pluginInstance;
@@ -150,10 +146,6 @@ public class ArtMap extends JavaPlugin implements IArtMap {
 		return this.headsCache;
 	}
 
-	public boolean isDBUpgradeNeeded() {
-		return this.dbUpgradeNeeded;
-	}
-
 	public void setColourPalette(Palette palette) {
 		this.dyePalette = palette;
 	}
@@ -183,7 +175,6 @@ public class ArtMap extends JavaPlugin implements IArtMap {
 			artistHandler = new ArtistHandler();
 			dyePalette = compatManager.getPalette();
 			database = new Database(this);
-			dbUpgradeNeeded = this.checkIfDatabaseUpgradeNeeded();
 			getLogger().info("MC version: " + Bukkit.getServer().getBukkitVersion());
 			Map<CanvasSize, PixelTableManager> loadedTables = PixelTableManager.buildAllTables(this);
 			if (loadedTables == null) {
@@ -229,20 +220,6 @@ public class ArtMap extends JavaPlugin implements IArtMap {
 //        recipeLoader.unloadRecipes();
 		reloadConfig();
 		pluginInstance = null;
-	}
-
-	private boolean checkIfDatabaseUpgradeNeeded() {
-		DatabaseConverter flatDatabaseConverter = new FlatDatabaseConverter(instance());
-		DatabaseConverter v2DatabaseConverter = new V2DatabaseConverter(instance());
-		if(flatDatabaseConverter.isNeeded()) {
-			instance().getLogger().log(Level.WARNING,"Flat Database Coversion needed! Pleae run '/artmap convert'");
-			return true;
-		}
-		if(v2DatabaseConverter.isNeeded()) {
-			instance().getLogger().log(Level.WARNING,"V2 Database Coversion needed! Please run '/art convert'");
-			return true;
-		}
-		return false;
 	}
 
 	public boolean writeResource(String resourcePath, File destination) {
