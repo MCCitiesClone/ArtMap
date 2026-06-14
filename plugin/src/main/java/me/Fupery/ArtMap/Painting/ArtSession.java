@@ -50,6 +50,7 @@ public class ArtSession implements IArtSession {
     private ItemStack[] inventory;
     private static final HashMap<UUID, ItemStack[]> artkitHotbars = new HashMap<>();
 
+    private final Object persistLock = new Object();
     private boolean active = false;
     private boolean dirty = true;
     private int artkitPage = 0;
@@ -109,7 +110,7 @@ public class ArtSession implements IArtSession {
     }
 
     void paint(ItemStack brush, Brush.BrushAction action) {
-        synchronized (this) {
+        synchronized (persistLock) {
             dirty = true;
         }
         if (currentBrush == null || !currentBrush.checkMaterial(brush)) {
@@ -256,7 +257,7 @@ public class ArtSession implements IArtSession {
             IllegalAccessException {
         byte[] mapData;
         boolean saveDb;
-        synchronized (this) {
+        synchronized (persistLock) {
             if (!dirty && !force) {
                 return;
             }
@@ -277,7 +278,7 @@ public class ArtSession implements IArtSession {
         byte[] mapData;
         int mapId;
         CanvasSize size;
-        synchronized (this) {
+        synchronized (persistLock) {
             if (!dirty) {
                 return;
             }
@@ -310,7 +311,7 @@ public class ArtSession implements IArtSession {
     }
 
     public void setDirty(boolean dirty) {
-        synchronized (this) {
+        synchronized (persistLock) {
             this.dirty = dirty;
         }
     }
@@ -329,7 +330,7 @@ public class ArtSession implements IArtSession {
      */
     public void clearMap() throws NoSuchFieldException, IllegalAccessException, SQLException, IOException {
         canvas.clear();
-        synchronized (this) {
+        synchronized (persistLock) {
             dirty = true;
         }
         this.persistMap(true);
