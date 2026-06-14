@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -14,6 +15,7 @@ import me.Fupery.ArtMap.Canvas.CanvasSize;
 import me.Fupery.ArtMap.Easel.Canvas;
 import me.Fupery.ArtMap.IO.CompressedMap;
 import me.Fupery.ArtMap.IO.MapArt;
+import me.Fupery.ArtMap.Painting.ArtSession;
 import me.Fupery.ArtMap.api.Exception.DuplicateArtworkException;
 import me.Fupery.ArtMap.api.Exception.PermissionException;
 
@@ -22,13 +24,18 @@ public interface IDatabase {
     public final Runnable AUTO_SAVE = new Runnable() {
         @Override
         public void run() {
-            for (UUID uuid : ArtMap.instance().getArtistHandler().getArtists()) {
-                try {
-                    ArtMap.instance().getArtistHandler().getCurrentSession(uuid).persistMap(false);
-                } catch (SQLException | IOException | NoSuchFieldException | IllegalAccessException e) {
-                    ArtMap.instance().getLogger().log(Level.SEVERE,"Error saving artwork!",e);
-                }
+            Set<UUID> artists = ArtMap.instance().getArtistHandler().getArtists();
+            if (artists.isEmpty()) {
+                return;
             }
+            ArtMap.instance().getScheduler().SYNC.run(() -> {
+                for (UUID uuid : artists) {
+                    ArtSession session = ArtMap.instance().getArtistHandler().getCurrentSession(uuid);
+                    if (session != null) {
+                        session.autosave();
+                    }
+                }
+            });
         }
     };
 

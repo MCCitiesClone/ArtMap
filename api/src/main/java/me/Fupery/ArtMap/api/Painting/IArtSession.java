@@ -16,5 +16,10 @@ public interface IArtSession {
     void end(Player player) throws SQLException, IOException;
     public void persistMap(boolean resetRenderer) throws SQLException, IOException, NoSuchFieldException,
             IllegalAccessException ;
+    /**
+     * Flush the in-memory canvas to the map file and database, even if no strokes occurred since the last save.
+     */
+    void flushMap(boolean resetRenderer) throws SQLException, IOException, NoSuchFieldException,
+            IllegalAccessException;
     boolean isActive();
 }

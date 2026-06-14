@@ -74,7 +74,7 @@ public class Fill extends Brush {
             final byte clickedColour = getPixelBuffer()[pixel[0]][pixel[1]];
             final byte setColour = colour.getDyeColour(clickedColour);
 
-            ArtMap.instance().getScheduler().ASYNC.run(() -> fillBucket(coloured, pixel[0], pixel[1], clickedColour, setColour));
+            fillBucket(coloured, pixel[0], pixel[1], clickedColour, setColour);
         }
     }
 
@@ -87,7 +87,7 @@ public class Fill extends Brush {
             final byte clickedColour = getPixelBuffer()[pixel[0]][pixel[1]];
             final byte setColour = colour;
 
-            ArtMap.instance().getScheduler().ASYNC.run(() -> fillBucket(coloured, pixel[0], pixel[1], clickedColour, setColour));
+            fillBucket(coloured, pixel[0], pixel[1], clickedColour, setColour);
         }
     }
 

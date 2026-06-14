@@ -64,6 +64,7 @@ public class ArtistHandler implements IArtistHandler {
 				session.paint(sender.getInventory().getItemInMainHand(),
 						(click == InteractType.ATTACK) ? BrushAction.LEFT_CLICK : BrushAction.RIGHT_CLICK);
 				session.sendMap(sender);
+				ArtMap.instance().getCompatManager().notifyPlayerPaintingActivity(sender);
 				return false;
 			}
 		} else {
@@ -101,6 +102,7 @@ public class ArtistHandler implements IArtistHandler {
 					Easel easel = session.getEasel();
 					ArtMap.instance().getScheduler().SYNC.run(() -> {
 						try {
+							session.flushMap(true);
 							Canvas canvas = Canvas.getCanvas(easel.getItem()).orElseThrow(()-> new ArtMapException("Failed to retrieve canvas!"));
 							MapArt art1 = ArtMap.instance().getArtDatabase().saveArtwork(canvas, title, sender);
 							ArtMap.instance().getHeadsCache().cacheArtistSkin(sender);

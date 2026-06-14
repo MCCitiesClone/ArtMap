@@ -17,6 +17,7 @@ import me.Fupery.ArtMap.Easel.Easel;
 import me.Fupery.ArtMap.Easel.EaselEffect;
 import me.Fupery.ArtMap.IO.Database.Map;
 import me.Fupery.ArtMap.IO.MapArt;
+import me.Fupery.ArtMap.Painting.ArtSession;
 import me.Fupery.ArtMap.IO.TitleFilter;
 import me.Fupery.ArtMap.Utils.ItemUtils;
 
@@ -63,6 +64,10 @@ class CommandSave extends AsyncCommand {
                 return;
             }
             try {
+                ArtSession session = ArtMap.instance().getArtistHandler().getCurrentSession(player);
+                if (session != null) {
+                    session.flushMap(true);
+                }
                 Canvas canvas = Canvas.getCanvas(easel.getItem()).orElseThrow(()-> new ArtMapException("Could not retrieve canvas!"));
                 MapArt art1 = ArtMap.instance().getArtDatabase().saveArtwork(canvas, title, player);
                 ArtMap.instance().getHeadsCache().cacheArtistSkin(player);

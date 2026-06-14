@@ -50,6 +50,7 @@ public class ArtSession implements IArtSession {
     private ItemStack[] inventory;
     private static final HashMap<UUID, ItemStack[]> artkitHotbars = new HashMap<>();
 
+    private final Object persistLock = new Object();
     private boolean active = false;
     private boolean dirty = true;
     private int artkitPage = 0;
@@ -85,7 +86,11 @@ public class ArtSession implements IArtSession {
 
         // Run tasks
         try {
-            ArtMap.instance().getArtDatabase().restoreMap(map, true, false);
+            // Only repair saved artwork from the DB; in-progress canvases should keep on-disk data.
+            if (ArtMap.instance().getArtDatabase().containsArtwork(map.getMapId())) {
+                ArtMap.instance().getArtDatabase().restoreMap(map, true, false);
+                canvas.reloadFromMap();
+            }
             ArtMap.instance().getScheduler().SYNC.runLater(() -> {
                 if (player.getVehicle() != null)
                     Lang.ActionBar.PAINTING.send(player);
@@ -105,7 +110,9 @@ public class ArtSession implements IArtSession {
     }
 
     void paint(ItemStack brush, Brush.BrushAction action) {
-        dirty = true;
+        synchronized (persistLock) {
+            dirty = true;
+        }
         if (currentBrush == null || !currentBrush.checkMaterial(brush)) {
             if (currentBrush != null)
                 currentBrush.clean();
@@ -237,20 +244,62 @@ public class ArtSession implements IArtSession {
         persistMap(resetRenderer, false);
     }
 
+    @Override
+    public void flushMap(boolean resetRenderer) throws SQLException, IOException, NoSuchFieldException,
+            IllegalAccessException {
+        persistMap(resetRenderer, true);
+    }
+
     /**
      * @param force when true, refresh map bytes and renderer even if {@link #dirty} is false (session end after autosave)
      */
     void persistMap(boolean resetRenderer, boolean force) throws SQLException, IOException, NoSuchFieldException,
             IllegalAccessException {
-        if (!dirty && !force) {
-            return;
+        byte[] mapData;
+        boolean saveDb;
+        synchronized (persistLock) {
+            if (!dirty && !force) {
+                return;
+            }
+            mapData = canvas.getMap();
+            saveDb = dirty || force;
+            dirty = false;
         }
-        byte[] mapData = canvas.getMap();
         map.setMap(mapData, resetRenderer);
-        if (dirty) {
+        if (saveDb) {
             ArtMap.instance().getArtDatabase().saveInProgressArt(this.map, mapData, canvasSize);
         }
-        dirty = false;
+    }
+
+    /**
+     * Autosave: snapshot canvas on the main thread, write to DB asynchronously.
+     */
+    void autosave() {
+        byte[] mapData;
+        int mapId;
+        CanvasSize size;
+        synchronized (persistLock) {
+            if (!dirty) {
+                return;
+            }
+            mapData = canvas.getMap();
+            mapId = map.getMapId();
+            size = canvasSize;
+            dirty = false;
+        }
+        try {
+            map.setMap(mapData, false);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            ArtMap.instance().getLogger().log(Level.SEVERE, "Error saving artwork to map file!", e);
+            return;
+        }
+        ArtMap.instance().getScheduler().ASYNC.run(() -> {
+            try {
+                ArtMap.instance().getArtDatabase().saveInProgressArt(new Map(mapId), mapData, size);
+            } catch (SQLException | IOException e) {
+                ArtMap.instance().getLogger().log(Level.SEVERE, "Error saving artwork!", e);
+            }
+        });
     }
 
     public boolean isActive() {
@@ -262,7 +311,9 @@ public class ArtSession implements IArtSession {
     }
 
     public void setDirty(boolean dirty) {
-        this.dirty = dirty;
+        synchronized (persistLock) {
+            this.dirty = dirty;
+        }
     }
 
     void sendMap(Player player) {
@@ -279,6 +330,9 @@ public class ArtSession implements IArtSession {
      */
     public void clearMap() throws NoSuchFieldException, IllegalAccessException, SQLException, IOException {
         canvas.clear();
+        synchronized (persistLock) {
+            dirty = true;
+        }
         this.persistMap(true);
        //map.clear();
     }

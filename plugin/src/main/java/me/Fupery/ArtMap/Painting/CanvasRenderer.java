@@ -115,19 +115,38 @@ public class CanvasRenderer extends MapRenderer implements ICanvasRenderer {
     }
 
     final private void loadMap() {
-        byte[] colours = map.readData();
-
         pixelBuffer = new byte[axisLength][axisLength];
         dirtyPixels = new ConcurrentLinkedQueue<>();
+        applyMapData(map.readData());
+    }
 
+    /**
+     * Reload the in-memory pixel buffer from the backing map file (e.g. after a DB restore).
+     */
+    void reloadFromMap() {
+        if (pixelBuffer == null || dirtyPixels == null) {
+            return;
+        }
+        applyMapData(map.readData());
+    }
+
+    private void applyMapData(byte[] colours) {
         int px, py;
         for (int x = 0; x < 128; x++) {
-
             for (int y = 0; y < 128; y++) {
-
                 px = x / resolutionFactor;
                 py = y / resolutionFactor;
-                addPixel(px, py, colours[x + (y * 128)]);
+                pixelBuffer[px][py] = colours[x + (y * 128)];
+            }
+        }
+        markBufferDirty();
+    }
+
+    private void markBufferDirty() {
+        dirtyPixels.clear();
+        for (int x = 0; x < axisLength; x++) {
+            for (int y = 0; y < axisLength; y++) {
+                dirtyPixels.add(new byte[] { (byte) x, (byte) y });
             }
         }
     }
