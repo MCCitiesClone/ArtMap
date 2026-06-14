@@ -17,7 +17,6 @@ import net.ess3.api.events.StateChangeEvent;
 
 public class EssentialsCompat implements EventListener {
     private static final long ACTIVITY_PULSE_COOLDOWN_MS = 3000L;
-    private final boolean loaded;
     private final IArtMap artmap;
     private final Essentials essentials;
     private final ConcurrentHashMap<UUID, Long> lastActivityPulse = new ConcurrentHashMap<>();
@@ -25,10 +24,7 @@ public class EssentialsCompat implements EventListener {
     public EssentialsCompat(IArtMap artmap) {
         this.artmap = artmap;
         this.essentials = Essentials.getPlugin(Essentials.class);
-        this.loaded = this.essentials != null;
-        if (this.loaded) {
-            artmap.getServer().getPluginManager().registerEvents(this, artmap);
-        }
+        artmap.getServer().getPluginManager().registerEvents(this, artmap);
     }
 
     @EventHandler
@@ -44,7 +40,7 @@ public class EssentialsCompat implements EventListener {
     }
 
     public void notifyPaintingActivity(Player player) {
-        if (!loaded || player == null || !artmap.getArtistHandler().containsPlayer(player)) {
+        if (player == null || !artmap.getArtistHandler().containsPlayer(player)) {
             return;
         }
         long now = System.currentTimeMillis();
@@ -73,6 +69,6 @@ public class EssentialsCompat implements EventListener {
 
     @Override
     public boolean isLoaded() {
-        return loaded;
+        return true;
     }
 }
