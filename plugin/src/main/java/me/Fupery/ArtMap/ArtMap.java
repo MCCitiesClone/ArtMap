@@ -46,14 +46,11 @@ import me.Fupery.ArtMap.api.IArtMap;
 import me.Fupery.ArtMap.api.Colour.Palette;
 import me.Fupery.ArtMap.api.Config.Configuration;
 import me.Fupery.ArtMap.api.Config.Lang;
-import me.Fupery.ArtMap.api.Utils.VersionHandler;
-
 public class ArtMap extends JavaPlugin implements IArtMap {
 
 	private static ArtMap pluginInstance = null;
 	private MenuHandler menuHandler;
 	private ArtistHandler artistHandler;
-	private VersionHandler bukkitVersion;
 	private Scheduler scheduler;
 	private IDatabase database;
 	private RecipeLoader recipeLoader;
@@ -92,10 +89,6 @@ public class ArtMap extends JavaPlugin implements IArtMap {
 
 	public ArtistHandler getArtistHandler() {
 		return this.artistHandler;
-	}
-
-	public VersionHandler getBukkitVersion() {
-		return this.bukkitVersion;
 	}
 
 	public RecipeLoader getRecipeLoader() {
@@ -185,14 +178,13 @@ public class ArtMap extends JavaPlugin implements IArtMap {
 			Lang.load(this, config);
 			reflection = new Reflection();
 			scheduler = new Scheduler(this);
-			bukkitVersion = new VersionHandler(this);
 			compatManager = new CompatibilityManager(this);
 			protocolHandler = new ProtocolHandler();
 			artistHandler = new ArtistHandler();
 			dyePalette = compatManager.getPalette();
 			database = new Database(this);
 			dbUpgradeNeeded = this.checkIfDatabaseUpgradeNeeded();
-			this.getLogger().info(" MC version: " + bukkitVersion.toString() ) ;
+			getLogger().info("MC version: " + Bukkit.getServer().getBukkitVersion());
 			Map<CanvasSize, PixelTableManager> loadedTables = PixelTableManager.buildAllTables(this);
 			if (loadedTables == null) {
 				getLogger().warning(Lang.INVALID_DATA_TABLES.get());

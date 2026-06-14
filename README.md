@@ -2,7 +2,7 @@
 
 ### Supported Versions
 
-* Spigot/Paper **1.20.2+** (requires JDK 21)
+* Spigot/Paper **1.21+** (requires JDK 21)
 * Requires the latest development build of ProtocolLib
 
 ### Downloads
