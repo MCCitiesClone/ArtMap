@@ -20,6 +20,7 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.Easel.EaselConstants;
 import me.Fupery.ArtMap.api.Config.Lang;
 import me.Fupery.ArtMap.Easel.Easel;
 import me.Fupery.ArtMap.Easel.EaselEffect;
@@ -146,7 +147,7 @@ class PlayerInteractEaselListener implements RegisteredListener {
 
     /** Check if the event is interacting with a easel sign.  Cancel the event if it is  */
     private boolean checkEaselSignEvent(Block block, Cancellable event) {
-        if (block.getType() == ArtMap.instance().getBukkitVersion().getVersion().getWallSign()) {
+        if (block.getType() == EaselConstants.WALL_SIGN) {
             Sign sign = ((Sign) block.getState());
 
             if (sign.getLine(3).equals(EaselPart.ARBITRARY_SIGN_ID)) {

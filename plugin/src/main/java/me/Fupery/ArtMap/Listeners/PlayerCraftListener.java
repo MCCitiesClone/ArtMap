@@ -18,7 +18,6 @@ import me.Fupery.ArtMap.api.Config.Lang;
 import me.Fupery.ArtMap.api.Exception.ArtMapException;
 import me.Fupery.ArtMap.IO.MapArt;
 import me.Fupery.ArtMap.Utils.ItemUtils;
-import me.Fupery.ArtMap.api.Utils.VersionHandler.BukkitVersion;
 
 class PlayerCraftListener implements RegisteredListener {
 
@@ -62,15 +61,9 @@ class PlayerCraftListener implements RegisteredListener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        // Tuinity fork sometimes throws a null even down the pipe
         if (event == null) {
             return;
         }
-        // one check this if 1.14+
-        if (ArtMap.instance().getBukkitVersion().getVersion().isLessThan(BukkitVersion.v1_14)) {
-            return;
-        }
-        // exit if not a cartogaphy inventory
         if (!(event.getInventory() instanceof CartographyInventory)) {
             return;
         }

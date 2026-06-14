@@ -8,6 +8,7 @@ import org.bukkit.Material;
 import org.bukkit.event.inventory.InventoryType;
 
 import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.Easel.EaselConstants;
 import me.Fupery.ArtMap.api.Config.Lang;
 import me.Fupery.ArtMap.Menu.API.BasicMenu;
 import me.Fupery.ArtMap.Menu.Button.Button;
@@ -33,7 +34,7 @@ public class HelpMenu extends BasicMenu {
     public Future<Button[]> getButtons() {
         MenuHandler.MenuList list = ArtMap.instance().getMenuHandler().MENU;
         return CompletableFuture.completedFuture(new Button[] {
-		        new StaticButton(ArtMap.instance().getBukkitVersion().getVersion().getSign(), Lang.Array.HELP_GETTING_STARTED.get()),
+		        new StaticButton(EaselConstants.SIGN, Lang.Array.HELP_GETTING_STARTED.get()),
 		        new LinkedButton(list.RECIPE, Material.CRAFTING_TABLE, Lang.Array.HELP_RECIPES.get()),
 		        new LinkedButton(list.DYES, Material.CYAN_DYE, Lang.Array.HELP_DYES.get()),
 		        new LinkedButton(list.TOOLS, Material.WRITABLE_BOOK, Lang.Array.HELP_TOOLS.get()),

@@ -108,12 +108,7 @@ public class Reflection {
 
         try {
             Object worldMap = getField(mapView, "worldMap");
-            try {
-                colors = (byte[]) getField(worldMap, "colors");
-            } catch (NoSuchFieldException e) {
-                //Then we must be on 1.17
-                colors = (byte[]) getField(worldMap, "g");
-            }
+            colors = (byte[]) getField(worldMap, "colors");
         } catch (NoSuchFieldException | SecurityException
                 | IllegalArgumentException | IllegalAccessException e) {
             colors = null;
@@ -129,12 +124,7 @@ public class Reflection {
             mapView.setCenterZ(-999999);
             
             Object worldMap = getField(mapView, "worldMap");
-            try {
-                setField(worldMap, "colors", colors);
-            } catch (NoSuchFieldException e) {
-                //Then we must be on 1.17
-                setField(worldMap, "g", colors);
-            }
+            setField(worldMap, "colors", colors);
 
             mapView.setScale(MapView.Scale.FARTHEST);
     }

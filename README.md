@@ -1,14 +1,9 @@
 ![ArtMap](http://puu.sh/kRWAF/2c81256338.jpg)
 
-### 1.21.0 Support
-
-Requires the latest development build of ProtocolLib.  The paintbrush for saving artwork will not work till
-AnvilGUI is updated.
-
 ### Supported Versions
 
-* Spigot/Paper 1.20.6, 1.19, 1.18.1, 1.17.1, 1.16.1,  1.15.2, 1.14.4, 1.13.2 - Master Branch
-* Spigot/Paper 1.8.8 - 1.12.2 - 1.12 Branch
+* Spigot/Paper **1.20.2+** (requires JDK 21)
+* Requires the latest development build of ProtocolLib
 
 ### Downloads
 
@@ -16,9 +11,6 @@ AnvilGUI is updated.
 <img src="/uploads/1507dccfd03a212b8544848cd49a24ad/image.png"/></a>
 
 * Downloads are available on the releases page in gitlab.
-* Downloads are now availble for 3 different JDKs. Use the version that matches the JDL you are using. 
-  * 1.13-1.19 - Use the JDK17 version.
-  * 1.20+ - Use the JDK21 version.
 
 ### Features
 

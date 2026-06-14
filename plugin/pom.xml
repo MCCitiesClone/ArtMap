@@ -150,32 +150,6 @@
     		<version>1.10.11-SNAPSHOT</version>
 			<scope>compile</scope>
 		</dependency>
-		<!--Artmap Spigot/Paper version compatibility-->
-		<dependency>
-			<groupId>com.gitlab.blockstack</groupId>
-			<artifactId>Spigot_1_13</artifactId>
-			<version>3.9.24</version>
-		</dependency>
-		<dependency>
-			<groupId>com.gitlab.blockstack</groupId>
-			<artifactId>Spigot_1_14</artifactId>
-			<version>3.9.24</version>
-		</dependency>
-		<dependency>
-			<groupId>com.gitlab.blockstack</groupId>
-			<artifactId>Spigot_1_16</artifactId>
-			<version>3.9.24</version>
-		</dependency>
-		<dependency>
-			<groupId>com.gitlab.blockstack</groupId>
-			<artifactId>Spigot_1_18</artifactId>
-			<version>3.9.24</version>
-		</dependency>
-		<dependency>
-			<groupId>com.gitlab.blockstack</groupId>
-			<artifactId>Spigot_1_20_2</artifactId>
-			<version>3.9.24</version>
-		</dependency>
 		<!--Artmap plugin compatibility addons (match modules under compatibility/) -->
 		<dependency>
 			<groupId>com.gitlab.blockstack</groupId>

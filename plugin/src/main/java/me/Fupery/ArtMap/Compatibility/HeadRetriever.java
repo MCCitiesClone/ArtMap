@@ -1,4 +1,4 @@
-package me.Fupery.ArtMap.Compatibility.impl;
+package me.Fupery.ArtMap.Compatibility;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -20,7 +20,7 @@ import com.google.gson.JsonParser;
 import me.Fupery.ArtMap.api.Compatability.IHeadsRetriever;
 import me.Fupery.ArtMap.api.Exception.HeadFetchException;
 
-public class HeadRetrieval_1_20_2 implements IHeadsRetriever {
+public class HeadRetriever implements IHeadsRetriever {
 
     @Override
     public Optional<TextureData> getTextureData(OfflinePlayer player) {
@@ -41,16 +41,15 @@ public class HeadRetrieval_1_20_2 implements IHeadsRetriever {
 
     @Override
 	public Optional<SkullMeta> getHeadMeta(UUID playerId, TextureData textureData) throws HeadFetchException {
-		if(textureData == null) {
+		if (textureData == null) {
 			return Optional.empty();
 		}
 		PlayerProfile profile = Bukkit.createPlayerProfile(playerId, textureData.name);
         PlayerTextures textures = profile.getTextures();
         try {
-            if(textureData.type == HeadCacheType.URL) {
+            if (textureData.type == HeadCacheType.URL) {
                 textures.setSkin(new URL(textureData.texture));
             } else {
-                //old profile format lets do some magic to extract the url
                 String json = new String(Base64.getDecoder().decode(textureData.texture.getBytes()));
                 JsonElement root = JsonParser.parseString(json);
                 String url = root.getAsJsonObject().get("textures").getAsJsonObject().get("SKIN").getAsJsonObject().get("url").getAsString();
@@ -58,8 +57,8 @@ public class HeadRetrieval_1_20_2 implements IHeadsRetriever {
             }
         } catch (MalformedURLException e) {
             throw new HeadFetchException("Failed to parse URL", e);
-        } catch (NullPointerException| IllegalStateException e) {
-            throw new HeadFetchException("Failed to parse json tp get skin url", e);
+        } catch (NullPointerException | IllegalStateException e) {
+            throw new HeadFetchException("Failed to parse json to get skin url", e);
         }
 		profile.setTextures(textures);
 		ItemStack head = new ItemStack(Material.PLAYER_HEAD, 1);
@@ -69,5 +68,4 @@ public class HeadRetrieval_1_20_2 implements IHeadsRetriever {
 
 		return Optional.of(meta);
 	}
-    
 }

@@ -205,7 +205,7 @@ public class ArtMap extends JavaPlugin implements IArtMap {
 				recipeLoader.loadRecipes();
 				recipesLoaded = true;
 			}
-			eventManager = new EventManager(this, bukkitVersion);
+			eventManager = new EventManager(this);
 			previewManager = new PreviewManager();
 			menuHandler = new MenuHandler(this);
 			PluginCommand artCommand = getCommand("art");

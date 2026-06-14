@@ -21,7 +21,7 @@ import me.Fupery.ArtMap.api.Config.Lang;
  */
 public enum EaselPart {
 	STAND(ARMOR_STAND, 0.4, -1, true), FRAME(ITEM_FRAME, 1, 0, false), SIGN(ARMOR_STAND, 0, 0, false), SEAT(ARMOR_STAND,
-			ArtMap.instance().getBukkitVersion().getVersion().getSeatXOffset(), ArtMap.instance().getBukkitVersion().getVersion().getSeatYOffset(),
+			EaselConstants.SEAT_X_OFFSET, EaselConstants.SEAT_Y_OFFSET,
 			true), MARKER(ARMOR_STAND, SEAT.modifier, 0, true);
 
 	public static final String ARBITRARY_SIGN_ID = "*{=}*";
@@ -95,7 +95,7 @@ public enum EaselPart {
 	public Entity spawn(Location easelLocation, BlockFace facing) {
 
 		if (this == SIGN) {
-			easelLocation.getBlock().setType(ArtMap.instance().getBukkitVersion().getVersion().getWallSign());
+			easelLocation.getBlock().setType(EaselConstants.WALL_SIGN);
 			WallSign bd = (WallSign) easelLocation.getBlock().getBlockData();
 			bd.setFacing(getSignFacing(facing));
 			easelLocation.getBlock().setBlockData(bd, false);
