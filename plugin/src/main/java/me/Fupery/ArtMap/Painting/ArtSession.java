@@ -254,17 +254,51 @@ public class ArtSession implements IArtSession {
      */
     void persistMap(boolean resetRenderer, boolean force) throws SQLException, IOException, NoSuchFieldException,
             IllegalAccessException {
+        byte[] mapData;
+        boolean saveDb;
         synchronized (this) {
             if (!dirty && !force) {
                 return;
             }
-            byte[] mapData = canvas.getMap();
-            map.setMap(mapData, resetRenderer);
-            if (dirty || force) {
-                ArtMap.instance().getArtDatabase().saveInProgressArt(this.map, mapData, canvasSize);
-            }
+            mapData = canvas.getMap();
+            saveDb = dirty || force;
             dirty = false;
         }
+        map.setMap(mapData, resetRenderer);
+        if (saveDb) {
+            ArtMap.instance().getArtDatabase().saveInProgressArt(this.map, mapData, canvasSize);
+        }
+    }
+
+    /**
+     * Autosave: snapshot canvas on the main thread, write to DB asynchronously.
+     */
+    void autosave() {
+        byte[] mapData;
+        int mapId;
+        CanvasSize size;
+        synchronized (this) {
+            if (!dirty) {
+                return;
+            }
+            mapData = canvas.getMap();
+            mapId = map.getMapId();
+            size = canvasSize;
+            dirty = false;
+        }
+        try {
+            map.setMap(mapData, false);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            ArtMap.instance().getLogger().log(Level.SEVERE, "Error saving artwork to map file!", e);
+            return;
+        }
+        ArtMap.instance().getScheduler().ASYNC.run(() -> {
+            try {
+                ArtMap.instance().getArtDatabase().saveInProgressArt(new Map(mapId), mapData, size);
+            } catch (SQLException | IOException e) {
+                ArtMap.instance().getLogger().log(Level.SEVERE, "Error saving artwork!", e);
+            }
+        });
     }
 
     public boolean isActive() {

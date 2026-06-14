@@ -28,17 +28,11 @@ public interface IDatabase {
             if (artists.isEmpty()) {
                 return;
             }
-            // Map bytes and the canvas pixel buffer must be read on the main thread.
             ArtMap.instance().getScheduler().SYNC.run(() -> {
                 for (UUID uuid : artists) {
                     ArtSession session = ArtMap.instance().getArtistHandler().getCurrentSession(uuid);
-                    if (session == null) {
-                        continue;
-                    }
-                    try {
-                        session.persistMap(false);
-                    } catch (SQLException | IOException | NoSuchFieldException | IllegalAccessException e) {
-                        ArtMap.instance().getLogger().log(Level.SEVERE, "Error saving artwork!", e);
+                    if (session != null) {
+                        session.autosave();
                     }
                 }
             });
