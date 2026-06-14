@@ -30,11 +30,17 @@ disablePaintbrush: false
 #Force use of the GUI and disable most slash commands for a bit more immersive feel
 guiOnly: false
 
-#Fetch unknown heads from Mojang api.  Turning this off will show steve heads for players not in the server cache.
+#Fetch unknown Java player heads from Mojang session server.
 headFetchMojang: true
 
-#Do head prefetch - Setting this to false will cause the first load of the artist menu to take a long time.
-headPrefetch: true
+#Java backup when Mojang fails — https://playerdb.co (Java players only).
+headFetchPlayerDb: true
+
+#Fetch Bedrock (Floodgate) player heads from Geyser Global API when not on the server profile cache.
+headFetchGeyser: true
+
+#Do head prefetch on startup - false loads heads lazily (recommended).
+headPrefetch: false
 
 #Head prefetch delay - Delay the head prefetch by the provided number of server ticks (20 ticks per second)
 headPrefetchDelay: 0

@@ -11,9 +11,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.Compatibility.impl.FloodgateCompat;
 import me.Fupery.ArtMap.Compatibility.impl.GriefPreventionCompat;
 import me.Fupery.ArtMap.Compatibility.impl.HeadRetrieval_1_13;
 import me.Fupery.ArtMap.Compatibility.impl.HeadRetrieval_1_20_2;
+import me.Fupery.ArtMap.Heads.NoBedrockPlayerSupport;
 import me.Fupery.ArtMap.Compatibility.impl.Palette_1_13;
 import me.Fupery.ArtMap.Compatibility.impl.Palette_1_14;
 import me.Fupery.ArtMap.Compatibility.impl.Palette_1_16;
@@ -24,6 +26,7 @@ import me.Fupery.ArtMap.Compatibility.impl.WorldGuardCompat;
 import me.Fupery.ArtMap.api.IArtMap;
 import me.Fupery.ArtMap.api.Colour.Palette;
 import me.Fupery.ArtMap.api.Compatability.EventListener;
+import me.Fupery.ArtMap.api.Compatability.IBedrockPlayerSupport;
 import me.Fupery.ArtMap.api.Compatability.IHeadsRetriever;
 import me.Fupery.ArtMap.api.Compatability.ReflectionHandler;
 import me.Fupery.ArtMap.api.Compatability.RegionHandler;
@@ -38,6 +41,7 @@ public class CompatibilityManager implements RegionHandler {
     private ReflectionHandler reflectionHandler;
     private Palette palette;
     private IHeadsRetriever headsRetriever;
+    private IBedrockPlayerSupport bedrockPlayerSupport;
 
     public CompatibilityManager(JavaPlugin plugin) {
         regionHandlers = new ArrayList<>();
@@ -47,6 +51,8 @@ public class CompatibilityManager implements RegionHandler {
         loadRegionHandler("PlotSquared",PlotSquared7Compat.class, "Plot Squared 7", new Version(7), new Version(9999));
         reflectionHandler = new VanillaReflectionHandler();
         loadEventListener("Essentials", EssentialsCompat.class, "Essentials");
+        bedrockPlayerSupport = new NoBedrockPlayerSupport();
+        loadBedrockSupport();
 
         for (RegionHandler regionHandler : regionHandlers) {
             plugin.getLogger().info(String.format("%s hooks enabled.",
@@ -114,6 +120,24 @@ public class CompatibilityManager implements RegionHandler {
         return headsRetriever;
     }
 
+    public IBedrockPlayerSupport getBedrockPlayerSupport() {
+        return bedrockPlayerSupport;
+    }
+
+    private void loadBedrockSupport() {
+        try {
+            if (isPluginLoaded("floodgate")) {
+                IBedrockPlayerSupport handler = new FloodgateCompat();
+                if (handler.isLoaded()) {
+                    bedrockPlayerSupport = handler;
+                    ArtMap.instance().getLogger().info("Floodgate hooks enabled for Bedrock player heads.");
+                }
+            }
+        } catch (Throwable exception) {
+            ArtMap.instance().getLogger().log(Level.WARNING,
+                    "Floodgate detected but head hooks could not be loaded.", exception);
+        }
+    }
 
     private void loadRegionHandler(String pluginName, Class<? extends RegionHandler> handlerClass, String description) {
         try {

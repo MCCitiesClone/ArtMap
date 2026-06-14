@@ -65,6 +65,7 @@ class CommandSave extends AsyncCommand {
             try {
                 Canvas canvas = Canvas.getCanvas(easel.getItem()).orElseThrow(()-> new ArtMapException("Could not retrieve canvas!"));
                 MapArt art1 = ArtMap.instance().getArtDatabase().saveArtwork(canvas, title, player);
+                ArtMap.instance().getHeadsCache().cacheArtistSkin(player);
                 easel.playEffect(EaselEffect.SAVE_ARTWORK);
                 ArtMap.instance().getArtistHandler().removePlayer(player);
                 easel.setItem(new ItemStack(Material.AIR));

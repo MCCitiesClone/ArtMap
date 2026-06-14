@@ -230,6 +230,9 @@ public class ArtMap extends JavaPlugin implements IArtMap {
 		artistHandler.stop();
 		menuHandler.closeAll();
 		eventManager.unregisterAll();
+		if (headsCache != null) {
+			headsCache.flushCache();
+		}
 		database.close();
 //        recipeLoader.unloadRecipes();
 		reloadConfig();

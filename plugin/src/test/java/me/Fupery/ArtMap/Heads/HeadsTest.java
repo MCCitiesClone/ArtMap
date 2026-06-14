@@ -31,7 +31,7 @@ public class HeadsTest {
         mockArtMap = mocks.getArtmapMock();
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void retrieveHead() throws HeadFetchException {
         HeadsCache cache = new HeadsCache(mockArtMap, false);
         ItemStack head = cache.getHead(UUID.fromString("5dcadcf6-7070-42ab-aaf3-b60a120a6bcf"));

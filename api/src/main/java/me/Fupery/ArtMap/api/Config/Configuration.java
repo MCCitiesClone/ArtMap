@@ -19,6 +19,8 @@ public class Configuration {
     public final long	 HEAD_PREFETCH_DELAY;
     public final long    HEAD_PREFETCH_PERIOD;
     public final boolean HEAD_FETCH_MOJANG;
+    public final boolean HEAD_FETCH_PLAYERDB;
+    public final boolean HEAD_FETCH_GEYSER;
     public final int     INK_USES;
     public final boolean LIMITED_INK_USES;
 	public final String  BLACKLIST;
@@ -36,10 +38,12 @@ public class Configuration {
         this.FORCE_ART_KIT = configuration.getBoolean("forceArtKit");
         this.DISABLE_PAINTBRUSH = configuration.getBoolean("disablePaintbrush");
 		this.FORCE_GUI = configuration.getBoolean("guiOnly", false);
-		this.HEAD_PREFETCH = configuration.getBoolean("headPrefetch", true);
+		this.HEAD_PREFETCH = configuration.getBoolean("headPrefetch", false);
         this.HEAD_PREFETCH_DELAY = configuration.getLong("headPrefetchDelay", 0L);
         this.HEAD_PREFETCH_PERIOD = configuration.getLong("headPrefetchPeriod", 10000L);
         this.HEAD_FETCH_MOJANG = configuration.getBoolean("headFetchMojang", true);
+        this.HEAD_FETCH_PLAYERDB = configuration.getBoolean("headFetchPlayerDb", true);
+        this.HEAD_FETCH_GEYSER = configuration.getBoolean("headFetchGeyser", true);
         this.INK_USES = configuration.getInt("inkUses");
         this.LIMITED_INK_USES = INK_USES > 0;
 		this.BLACKLIST = configuration.getString("blacklist");

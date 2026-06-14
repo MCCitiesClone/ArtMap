@@ -3,7 +3,7 @@ main: me.Fupery.ArtMap.ArtMap
 version: ${project.version}
 description: ${project.description}
 depend: [ProtocolLib]
-softdepend: [WorldGuard, GriefPrevention, PlotSquared, Essentials]
+softdepend: [WorldGuard, GriefPrevention, PlotSquared, Essentials, floodgate]
 author: [Wispoffates,(Original) Fupery]
 api-version: 1.13
 

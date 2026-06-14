@@ -34,7 +34,11 @@ public interface IHeadsRetriever {
 		/** Retrieved from Server */
 		SERVER, 
 		/** Retrieved from Mojang API */
-		MOJANG_API, 
+		MOJANG_API,
+		/** Retrieved from PlayerDB (Java backup) */
+		PLAYERDB_API,
+		/** Retrieved from Geyser Global API (Bedrock skins) */
+		GEYSER_API,
 		/** Failure to get skin */
 		NONE
 	}
