@@ -85,7 +85,11 @@ public class ArtSession implements IArtSession {
 
         // Run tasks
         try {
-            ArtMap.instance().getArtDatabase().restoreMap(map, true, false);
+            // Only repair saved artwork from the DB; in-progress canvases should keep on-disk data.
+            if (ArtMap.instance().getArtDatabase().containsArtwork(map.getMapId())) {
+                ArtMap.instance().getArtDatabase().restoreMap(map, true, false);
+                canvas.reloadFromMap();
+            }
             ArtMap.instance().getScheduler().SYNC.runLater(() -> {
                 if (player.getVehicle() != null)
                     Lang.ActionBar.PAINTING.send(player);
@@ -105,7 +109,9 @@ public class ArtSession implements IArtSession {
     }
 
     void paint(ItemStack brush, Brush.BrushAction action) {
-        dirty = true;
+        synchronized (this) {
+            dirty = true;
+        }
         if (currentBrush == null || !currentBrush.checkMaterial(brush)) {
             if (currentBrush != null)
                 currentBrush.clean();
@@ -237,20 +243,28 @@ public class ArtSession implements IArtSession {
         persistMap(resetRenderer, false);
     }
 
+    @Override
+    public void flushMap(boolean resetRenderer) throws SQLException, IOException, NoSuchFieldException,
+            IllegalAccessException {
+        persistMap(resetRenderer, true);
+    }
+
     /**
      * @param force when true, refresh map bytes and renderer even if {@link #dirty} is false (session end after autosave)
      */
     void persistMap(boolean resetRenderer, boolean force) throws SQLException, IOException, NoSuchFieldException,
             IllegalAccessException {
-        if (!dirty && !force) {
-            return;
+        synchronized (this) {
+            if (!dirty && !force) {
+                return;
+            }
+            byte[] mapData = canvas.getMap();
+            map.setMap(mapData, resetRenderer);
+            if (dirty || force) {
+                ArtMap.instance().getArtDatabase().saveInProgressArt(this.map, mapData, canvasSize);
+            }
+            dirty = false;
         }
-        byte[] mapData = canvas.getMap();
-        map.setMap(mapData, resetRenderer);
-        if (dirty) {
-            ArtMap.instance().getArtDatabase().saveInProgressArt(this.map, mapData, canvasSize);
-        }
-        dirty = false;
     }
 
     public boolean isActive() {
@@ -262,7 +276,9 @@ public class ArtSession implements IArtSession {
     }
 
     public void setDirty(boolean dirty) {
-        this.dirty = dirty;
+        synchronized (this) {
+            this.dirty = dirty;
+        }
     }
 
     void sendMap(Player player) {
@@ -279,6 +295,9 @@ public class ArtSession implements IArtSession {
      */
     public void clearMap() throws NoSuchFieldException, IllegalAccessException, SQLException, IOException {
         canvas.clear();
+        synchronized (this) {
+            dirty = true;
+        }
         this.persistMap(true);
        //map.clear();
     }

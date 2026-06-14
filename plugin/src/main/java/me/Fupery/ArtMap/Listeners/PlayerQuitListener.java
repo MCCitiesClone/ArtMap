@@ -70,14 +70,12 @@ class PlayerQuitListener implements RegisteredListener {
      */
     public static void endPlayerArtSession(Player player) {
         if (ArtMap.instance().getArtistHandler().containsPlayer(player)) {
-            if (player.isInsideVehicle()) {
-                ArtMap.instance().getArtistHandler().getCurrentSession(player).removeKit(player);
-                try {
-                    ArtMap.instance().getArtistHandler().removePlayer(player);
-                } catch (SQLException | IOException e) {
-                    ArtMap.instance().getLogger().log(Level.SEVERE, "Database error!", e);
-                    return; 
-                }
+            ArtMap.instance().getArtistHandler().getCurrentSession(player).removeKit(player);
+            try {
+                ArtMap.instance().getArtistHandler().removePlayer(player);
+            } catch (SQLException | IOException e) {
+                ArtMap.instance().getLogger().log(Level.SEVERE, "Database error!", e);
+                return;
             }
         }
 		if (ArtMap.instance().getPreviewManager().isPreviewing(player)) {

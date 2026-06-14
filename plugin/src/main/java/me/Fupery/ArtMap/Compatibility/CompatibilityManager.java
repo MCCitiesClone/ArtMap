@@ -124,6 +124,17 @@ public class CompatibilityManager implements RegionHandler {
         return bedrockPlayerSupport;
     }
 
+    public void notifyPlayerPaintingActivity(Player player) {
+        if (player == null) {
+            return;
+        }
+        for (EventListener eventListener : eventListeners) {
+            if (eventListener instanceof EssentialsCompat) {
+                ((EssentialsCompat) eventListener).notifyPaintingActivity(player);
+            }
+        }
+    }
+
     private void loadBedrockSupport() {
         try {
             if (isPluginLoaded("floodgate")) {
