@@ -1,0 +1,78 @@
+name: Build & Release
+
+# Builds the shaded plugin jar and publishes a GitHub Release on every push to
+# master. The patch version is bumped automatically and committed back, so no
+# manual tagging is required.
+
+on:
+  push:
+    branches: [master]
+    paths-ignore:
+      - '.github/**'
+      - '**/*.md'
+
+# Never run two releases at once — they would race on the version bump / tag.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    # Skip the automated version-bump commit to avoid an infinite loop.
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Bump patch version
+        id: version
+        run: |
+          CURRENT=$(mvn -q -N help:evaluate -Dexpression=project.version -DforceStdout)
+          BASE=${CURRENT%-SNAPSHOT}
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$BASE"
+          NEW="${MAJOR}.${MINOR}.$((PATCH + 1))"
+          echo "Bumping $CURRENT -> $NEW"
+          mvn -B -ntp versions:set -DnewVersion="$NEW" -DgenerateBackupPoms=false -DprocessAllModules=true
+          echo "version=$NEW" >> "$GITHUB_OUTPUT"
+
+      - name: Build
+        run: mvn -B -ntp package
+
+      - name: Locate jar
+        id: jar
+        run: |
+          JAR=$(ls plugin/target/ArtMap-${{ steps.version.outputs.version }}.jar)
+          echo "path=$JAR" >> "$GITHUB_OUTPUT"
+
+      - name: Commit version bump
+        id: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "Release v${{ steps.version.outputs.version }} [skip ci]"
+          git push
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v${{ steps.version.outputs.version }}" \
+            "${{ steps.jar.outputs.path }}" \
+            --title "v${{ steps.version.outputs.version }}" \
+            --target "${{ steps.commit.outputs.sha }}" \
+            --generate-notes
