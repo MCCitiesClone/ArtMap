@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>com.gitlab.blockstack</groupId>
 		<artifactId>ArtMap-parent</artifactId>
-		<version>3.9.24</version>
+		<version>3.9.25</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<build>
@@ -122,7 +122,7 @@
 		<dependency>
 			<groupId>me.Fupery</groupId>
 			<artifactId>DataTables</artifactId>
-			<version>1.0</version>
+			<version>3.9.25</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
@@ -153,27 +153,27 @@
 		<dependency>
 			<groupId>com.gitlab.blockstack</groupId>
 			<artifactId>Essentials</artifactId>
-			<version>3.9.24</version>
+			<version>3.9.25</version>
 		</dependency>
 		<dependency>
 			<groupId>com.gitlab.blockstack</groupId>
 			<artifactId>GriefPrevention</artifactId>
-			<version>3.9.24</version>
+			<version>3.9.25</version>
 		</dependency>
 		<dependency>
 			<groupId>com.gitlab.blockstack</groupId>
 			<artifactId>PlotSquared7</artifactId>
-			<version>3.9.24</version>
+			<version>3.9.25</version>
 		</dependency>
 		<dependency>
 			<groupId>com.gitlab.blockstack</groupId>
 			<artifactId>WorldGuard</artifactId>
-			<version>3.9.24</version>
+			<version>3.9.25</version>
 		</dependency>
 		<dependency>
 			<groupId>com.gitlab.blockstack</groupId>
 			<artifactId>Floodgate</artifactId>
-			<version>3.9.24</version>
+			<version>3.9.25</version>
 		</dependency>
 		<!--COMPATABILITY DEPENDENCIES -->
 		<dependency>
